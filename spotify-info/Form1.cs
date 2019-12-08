@@ -81,30 +81,90 @@ namespace spotify_info
         // Manually update currently playing information
         private void btn_updateCurrentlyPlaying_Click(object sender, EventArgs e)
         {
-            get_Currently_Playing();
+            update_currently_playing();
         }
 
-        private void get_Currently_Playing()
+        private void update_currently_playing()
+        {
+            // Get curretly playing object
+            currentlyplaying currentlyplaying_ = get_Currently_Playing();
+            if (currentlyplaying_.item != null)
+            {
+                // Set Track name label to track name
+                lbl_cTrackName.Invoke((MethodInvoker)delegate {
+                    lbl_cTrackName.Text = currentlyplaying_.item.name;
+                });
+                // Put list of artists into a string and set as text for Track artists label
+                lbl_cTrackArtist.Invoke((MethodInvoker)delegate {
+                    lbl_cTrackArtist.Text = String.Join(", ", currentlyplaying_.item.artists.Select(p => p.name).ToArray());
+                });
+                // Display cover in picture box
+                pic_Cover.Invoke((MethodInvoker)delegate {
+                    pic_Cover.Load(currentlyplaying_.item.album.images[0].url);
+                });
+            }
+        }
+
+        // Token for Spotify API
+        string oAuthToken = "BQA0cjcTeyDOwmXofJEOLJs7FTmonf2UsvzLaVhZjRq6n1C_FgwBJV_HENLbhzYsumEv1e0fmS85sWxddheL3e5_ro0rCqszq2Z4AVOmctEjWRhT1RzSfBYOgaDDZ8v0oHPx5uV4A0s";
+
+        // Returns a currently playing object with all of the available information on the currently playing track
+        private currentlyplaying get_Currently_Playing()
         {
             // Create an api request
             var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://api.spotify.com/v1/me/player/currently-playing?market=ES");
             httpWebRequest.ContentType = "application/json";
             httpWebRequest.Accept = "application/json";
             httpWebRequest.Method = "GET";
-            httpWebRequest.Headers.Add("Authorization", "Bearer BQDwo0fB8127wPrY2feLmIi5Y8_n_s8rpggyTWviCBf78p1e7LXMV5n-Fi9xnkBfLBhdu_CFGVj63Sdjjfb5laPoN9RFCQIRnDzBuShQfnCPjcjN4ApG1tl-GdeXaVdUj30wcosFY6U");
+            httpWebRequest.Headers.Add("Authorization", "Bearer " + oAuthToken);
 
             var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
 
             using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
             {
                 // Parse the returned json to a c# object
-                currentlyplaying currentlyplaying_ = Newtonsoft.Json.JsonConvert.DeserializeObject<currentlyplaying>(streamReader.ReadToEnd());
-                lbl_cTrackName.Text = currentlyplaying_.item.name;
+                string response = streamReader.ReadToEnd();
+                currentlyplaying currentlyplaying_ = Newtonsoft.Json.JsonConvert.DeserializeObject<currentlyplaying>(response);
+                
+                return currentlyplaying_;
             }
 
         }
 
-        
+        // This will check if spotify started playing a new song
+        private void song_change_listener()
+        {
+            while (listen)
+            {
+                // Get current window title of active window
+                string title = GetWindowTitle();
+                // Wait for the title to change, check 10 times per second
+                while (title == GetWindowTitle())
+                {
+                    Thread.Sleep(100);
+                }
+                // MessageBox.Show("New song");
+                for (int i = 0; i < 2; i++)
+                {
+                    Task.Delay(600);
+                    update_currently_playing();
+                }
+                
+            }
+        }
 
+        bool listen = false;
+        private void btn_toggleListener_Click(object sender, EventArgs e)
+        {
+            if (listen == false)
+            {
+                listen = true;
+                Task listenTask = new Task(song_change_listener);
+                listenTask.Start();
+            } else
+            {
+                listen = false;
+            }
+        }
     }
 }
