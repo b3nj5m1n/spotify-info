@@ -66,7 +66,7 @@ namespace spotify_info
             {
                 Thread.Sleep(delay/100);
                 prog_getspotifyprocess.Invoke((MethodInvoker)delegate {
-                    prog_getspotifyprocess.Value += 1;
+                    prog_getspotifyprocess.Value = prog_getspotifyprocess.Value + 1 % 100;
                 });
             }
             
