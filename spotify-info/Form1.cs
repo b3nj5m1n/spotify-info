@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -74,5 +77,34 @@ namespace spotify_info
                 btn_getProcess.Text = "Task name: " + GetWindowTitle();
             });
         }
+
+        // Manually update currently playing information
+        private void btn_updateCurrentlyPlaying_Click(object sender, EventArgs e)
+        {
+            get_Currently_Playing();
+        }
+
+        private void get_Currently_Playing()
+        {
+            // Create an api request
+            var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://api.spotify.com/v1/me/player/currently-playing?market=ES");
+            httpWebRequest.ContentType = "application/json";
+            httpWebRequest.Accept = "application/json";
+            httpWebRequest.Method = "GET";
+            httpWebRequest.Headers.Add("Authorization", "Bearer BQDwo0fB8127wPrY2feLmIi5Y8_n_s8rpggyTWviCBf78p1e7LXMV5n-Fi9xnkBfLBhdu_CFGVj63Sdjjfb5laPoN9RFCQIRnDzBuShQfnCPjcjN4ApG1tl-GdeXaVdUj30wcosFY6U");
+
+            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                // Parse the returned json to a c# object
+                currentlyplaying currentlyplaying_ = Newtonsoft.Json.JsonConvert.DeserializeObject<currentlyplaying>(streamReader.ReadToEnd());
+                lbl_cTrackName.Text = currentlyplaying_.item.name;
+            }
+
+        }
+
+        
+
     }
 }
