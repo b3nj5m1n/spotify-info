@@ -298,6 +298,7 @@
             this.Controls.Add(this.prog_getspotifyprocess);
             this.Controls.Add(this.btn_getProcess);
             this.Name = "form";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Spotify Info";
             this.Load += new System.EventHandler(this.form_Load);
             this.grp_currentTrack.ResumeLayout(false);

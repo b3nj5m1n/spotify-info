@@ -67,7 +67,7 @@ namespace spotify_info
         private void get_Process()
         {
             // Delay to wait for to focus the spotify application in ms
-            int delay = 5000;
+            int delay = 2500;
             // Wait for delay
             for (int i = 0; i < delay; i += delay / 100)
             {
@@ -129,7 +129,7 @@ namespace spotify_info
             httpWebRequest.ContentType = "application/json";
             httpWebRequest.Accept = "application/json";
             httpWebRequest.Method = "GET";
-            httpWebRequest.Headers.Add("Authorization", "Bearer " + oAuthToken);
+            httpWebRequest.Headers.Add("Authorization", "Bearer " + txt_accessToken.Text); // oAuthToken);
 
             var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
 
@@ -414,6 +414,7 @@ namespace spotify_info
         {
             using (var fbd = new FolderBrowserDialog())
             {
+                fbd.SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
                 DialogResult result = fbd.ShowDialog();
 
                 if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
