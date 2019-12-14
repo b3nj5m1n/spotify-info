@@ -176,9 +176,11 @@ namespace spotify_info
             }
         }
 
+        DB_Handler DB_Handler = new DB_Handler();
         private void btn_connectDB_Click(object sender, EventArgs e)
         {
             // DB_Handler dB_Handler = new DB_Handler();
+            updateHostPort();
             bool live = DB_Handler.testConnection();
             if (live)
             {
@@ -193,15 +195,85 @@ namespace spotify_info
         {
             DB_Handler.insertSong(currentlyplaying_, "C:", false, DateTime.Now);
         }
+
+        private void txt_accessToken_Click(object sender, EventArgs e)
+        {
+            txt_accessToken.Text = "";
+        }
+
+        private void txt_accessToken_DoubleClick(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://developer.spotify.com/console/get-users-currently-playing-track/?market=");
+        }
+
+        // Keep track if a path (To save the files to) has been specified
+        bool pathSpecified = false;
+        // String for the path to save the files to
+        string path = "";
+        // Keep track if local database should be used (Requires MongoDB installed)
+        bool useLocalDB = false;
+        private void btn_toggleRecord_Click(object sender, EventArgs e)
+        {
+            if (!pathSpecified)
+            {
+                MessageBox.Show("Please select a folder to save the files in.");
+            }
+        }
+
+        private void btn_selectdFolder_Click(object sender, EventArgs e)
+        {
+            using (var fbd = new FolderBrowserDialog())
+            {
+                DialogResult result = fbd.ShowDialog();
+
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    path = fbd.SelectedPath;
+                    pathSpecified = true;
+                    btn_selectdFolder.Text = path;
+                }
+            }
+        }
+
+        private void btn_useLocalDatabase_Click(object sender, EventArgs e)
+        {
+            updateHostPort();
+            // If currently the local db isn't used
+            if (!useLocalDB)
+            {
+                // If there is a mongoDB service running on localhost
+                if (DB_Handler.testConnection())
+                {
+                    btn_useLocalDatabase.BackColor = Color.LightGreen;
+                    useLocalDB = true;
+                } else
+                {
+                    btn_useLocalDatabase.BackColor = Color.IndianRed;
+                    MessageBox.Show("Connection to local database could not be established.");
+                }
+            } else
+            {
+                useLocalDB = false;
+                btn_useLocalDatabase.BackColor = Color.FromArgb(30, 30, 30);
+            }
+        }
+            
+        void updateHostPort()
+        {
+            DB_Handler.host = txt_dbHost.Text;
+            DB_Handler.port = txt_dbPort.Text;
+        }
     }
 
     class DB_Handler
     {
-        static string database_name = "spotify_downloader";
-        static string collection_name = "songs";
-        public static bool testConnection()
+        string database_name = "spotify_downloader";
+        string collection_name = "songs";
+        public string host = "localhost";
+        public string port = "27017";
+        public bool testConnection()
         {
-            var client = new MongoClient("mongodb://localhost:27017");
+            var client = new MongoClient("mongodb://" + host + ":" + port + "");
             var db = client.GetDatabase(database_name);
             bool live = db.RunCommandAsync((Command<BsonDocument>)"{ping:1}")
                 .Wait(1000);
@@ -220,7 +292,7 @@ namespace spotify_info
         }
 
         // Inserts song into database
-        public static void insertSong(currentlyplaying currentlyplaying_, string path_, bool downloaded_, DateTime dateTime_)
+        public void insertSong(currentlyplaying currentlyplaying_, string path_, bool downloaded_, DateTime dateTime_)
         {
             var client = new MongoClient("mongodb://localhost:27017");
             var db = client.GetDatabase(database_name);
