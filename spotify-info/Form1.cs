@@ -19,6 +19,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using SpotifyAPI.Web.Auth;
+using SpotifyAPI.Web.Models;
+using SpotifyAPI.Web.Enums;
 
 namespace spotify_info
 {
@@ -31,7 +34,14 @@ namespace spotify_info
 
         private void form_Load(object sender, EventArgs e)
         {
-
+            if (DB_Handler.testConnection())
+            {
+                settings s = DB_Handler.loadSettings();
+                txt_clientID.Text = s.Client_id;
+                txt_secretID.Text = s.Secret_id;
+                txt_dbHost.Text = s.Host;
+                txt_dbPort.Text = s.Port;
+            }
         }
 
         #region Process/Window
@@ -233,12 +243,12 @@ namespace spotify_info
 
         private void txt_accessToken_Click(object sender, EventArgs e)
         {
-            txt_accessToken.Text = "";
+            // txt_accessToken.Text = "";
         }
 
         private void txt_accessToken_DoubleClick(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start("https://developer.spotify.com/console/get-users-currently-playing-track/?market=");
+            // System.Diagnostics.Process.Start("https://developer.spotify.com/console/get-users-currently-playing-track/?market=");
         }
 
         // Keep track if a path (To save the files to) has been specified
@@ -494,12 +504,77 @@ namespace spotify_info
         {
             convertTagAsynch(@"C:\Users\b3nj4m1n\Music\spotifydownloader\", "0A5gdlrpAuQqZ2iFgnqBFW", get_Currently_Playing());
         }
+
+        Token token;
+        AuthorizationCodeAuth auth;
+        string _clientId = "a1049f9ae84b48d08f11dfddb806bf22";
+        string _secretId = "f72602b2606643a0b05d0c4bf7357608";
+        private void btn_tokenGet_Click(object sender, EventArgs e)
+        {
+            auth = new AuthorizationCodeAuth(
+                _clientId,
+                _secretId,
+                "http://localhost:4002",
+                "http://localhost:4002",
+                Scope.UserReadCurrentlyPlaying | Scope.UserReadPlaybackState
+            );
+            auth.AuthReceived += async (s, payload) =>
+            {
+                auth.Stop();
+                token = await auth.ExchangeCode(payload.Code);
+                oAuthToken = token.AccessToken;
+                txt_accessToken.Invoke((MethodInvoker)delegate
+                {
+                    txt_accessToken.Text = oAuthToken;
+                });
+                // Token newToken = await auth.RefreshToken(token.RefreshToken);
+            };
+            auth.Start(); // Starts an internal HTTP Server
+            auth.OpenBrowser();
+        }
+
+        private void btn_tokenRefresh_Click(object sender, EventArgs e)
+        {
+            refreshToken();
+        }
+
+        async void refreshToken()
+        {
+            Token newToken = await auth.RefreshToken(token.RefreshToken);
+            oAuthToken = newToken.AccessToken;
+            txt_accessToken.Invoke((MethodInvoker)delegate
+            {
+                txt_accessToken.Text = oAuthToken;
+            });
+        }
+
+        private void txt_clientID_Click(object sender, EventArgs e)
+        {
+            txt_clientID.Text = "";
+        }
+
+        private void txt_secretID_Click(object sender, EventArgs e)
+        {
+            txt_secretID.Text = "";
+        }
+
+        private void form_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            settings s = new settings();
+            s.Client_id = _clientId;
+            s.Secret_id = _secretId;
+            s.Host = txt_dbHost.Text;
+            s.Port = txt_dbPort.Text;
+            s.Path = path;
+            DB_Handler.saveSettings(s);
+        }
     }
 
     class DB_Handler
     {
         string database_name = "spotify_downloader";
         string collection_name = "songs";
+        string settings_collection_name = "settings";
         public string host = "localhost";
         public string port = "27017";
         public bool testConnection()
@@ -538,6 +613,38 @@ namespace spotify_info
             coll.InsertOne(document);
         }
 
+        public settings loadSettings()
+        {
+            var client = new MongoClient("mongodb://" + host + ":" + port + "");
+            var db = client.GetDatabase(database_name);
+            var collection = db.GetCollection<settings>(settings_collection_name);
+            var documents = collection.Find(Builders<settings>.Filter.Empty).Limit(1).ToListAsync().Result;
+            settings s = null;
+            foreach (var item in documents)
+            {
+                s = item;
+            }
+            return s;
+        }
+        public void saveSettings(settings s)
+        {
+            var client = new MongoClient("mongodb://" + host + ":" + port + "");
+            var db = client.GetDatabase(database_name);
+            db.DropCollection(settings_collection_name);
+            var collection = db.GetCollection<settings>(settings_collection_name);
+            collection.InsertOne(s);
+        }
+
+    }
+
+    class settings
+    {
+        public dynamic _id { get; set; }
+        public string Client_id { get; set; }
+        public string Secret_id { get; set; }
+        public string Host { get; set; }
+        public string Port { get; set; }
+        public string Path { get; set; }
     }
 
 
