@@ -36,11 +36,31 @@ namespace spotify_info
         {
             if (DB_Handler.testConnection())
             {
+                btn_connectDB.BackColor = Color.LightGreen;
+                useLocalDB = true;
+                btn_useLocalDatabase.BackColor = Color.LightGreen;
                 settings s = DB_Handler.loadSettings();
                 txt_clientID.Text = s.Client_id;
                 txt_secretID.Text = s.Secret_id;
                 txt_dbHost.Text = s.Host;
                 txt_dbPort.Text = s.Port;
+                txt_accessToken.Text = s.oAuthToken;
+                oAuthToken = s.oAuthToken;
+                token = new Token();
+                token.RefreshToken = s.refreshToken;
+                auth = new AuthorizationCodeAuth(
+                    _clientId,
+                    _secretId,
+                    "http://localhost:4002",
+                    "http://localhost:4002",
+                    Scope.UserReadCurrentlyPlaying | Scope.UserReadPlaybackState
+                );
+                path = s.Path;
+                if (Directory.Exists(path))
+                {
+                    pathSpecified = true;
+                    btn_selectdFolder.Text = path;
+                }
             }
         }
 
@@ -102,20 +122,24 @@ namespace spotify_info
             // Get process handle of active window
             //handle = GetForegroundWindow();
 
-            // Get all the processes named spotify and look for one with an open window
-            foreach (Process process in Process.GetProcessesByName("Spotify"))
+            if (!foundTask)
             {
-                if (GetWindowTitleByHandle(process.MainWindowHandle) != null)
+                // Get all the processes named spotify and look for one with an open window
+                foreach (Process process in Process.GetProcessesByName("Spotify"))
                 {
-                    handle = process.MainWindowHandle;
+                    if (GetWindowTitleByHandle(process.MainWindowHandle) != null)
+                    {
+                        handle = process.MainWindowHandle;
+                    }
                 }
-            }
             ;
-            // Change the text of the button to the window name
-            btn_getProcess.Invoke((MethodInvoker)delegate
-            {
-                btn_getProcess.Text = "Task name: " + GetWindowTitle();
-            });
+                // Change the text of the button to the window name
+                btn_getProcess.Invoke((MethodInvoker)delegate
+                {
+                    btn_getProcess.Text = "Task name: " + GetWindowTitle();
+                });
+                foundTask = true;
+            }
         }
 
         // Manually update currently playing information
@@ -153,33 +177,40 @@ namespace spotify_info
         }
 
         // Token for Spotify API
-        string oAuthToken = "BQDOYVAf1qi446ckccYJQJ0NPE3q03RXwR5XLO4FPUNnVqTP1vrd-OERFWGEcmGvbFJO6EifZa7cFHcC1Epl37M8Y3g1yx6I6qY7dfSxvYy5TVl2t7NNd93LlDacvS3IZkEySidNWXkU";
+        string oAuthToken = "";
 
         // Returns a currently playing object with all of the available information on the currently playing track
         private currentlyplaying get_Currently_Playing()
         {
-            // Create an api request
-            var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://api.spotify.com/v1/me/player/currently-playing?market=ES");
-            httpWebRequest.ContentType = "application/json";
-            httpWebRequest.Accept = "application/json";
-            httpWebRequest.Method = "GET";
-            httpWebRequest.Headers.Add("Authorization", "Bearer " + txt_accessToken.Text); // oAuthToken);
-
-            try
+            if (oAuthToken != "")
             {
-                var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                // Create an api request
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://api.spotify.com/v1/me/player/currently-playing?market=ES");
+                httpWebRequest.ContentType = "application/json";
+                httpWebRequest.Accept = "application/json";
+                httpWebRequest.Method = "GET";
+                httpWebRequest.Headers.Add("Authorization", "Bearer " + txt_accessToken.Text); // oAuthToken);
+
+                try
                 {
-                    // Parse the returned json to a c# object
-                    string response = streamReader.ReadToEnd();
-                    currentlyplaying currentlyplaying_ = Newtonsoft.Json.JsonConvert.DeserializeObject<currentlyplaying>(response);
+                    var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                    using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                    {
+                        // Parse the returned json to a c# object
+                        string response = streamReader.ReadToEnd();
+                        currentlyplaying currentlyplaying_ = Newtonsoft.Json.JsonConvert.DeserializeObject<currentlyplaying>(response);
 
-                    return currentlyplaying_;
+                        return currentlyplaying_;
+                    }
                 }
-            }
-            catch (Exception ex)
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                    return null;
+                }
+            } else
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("Access token required.");
                 return null;
             }
         }
@@ -290,6 +321,7 @@ namespace spotify_info
         }
 
         bool stopRecording = true;
+        bool foundTask = false;
         void loopRecord()
         {
             // Get current window title of active window
@@ -309,61 +341,64 @@ namespace spotify_info
             {
                 using (WasapiCapture capture = new WasapiLoopbackCapture())
                 {
-                    string filename = get_Currently_Playing().item.id; // GetWindowTitle();
+                    currentlyplaying cp = get_Currently_Playing();
+                    if (cp != null) {
+                        string filename = cp.item.id; // GetWindowTitle();
 
-                    //rtxt_songlist.Invoke((MethodInvoker)delegate {
-                    //    // Running on the UI thread
-                    //    rtxt_songlist.Text += filename + "\n";
-                    //});
+                        //rtxt_songlist.Invoke((MethodInvoker)delegate {
+                        //    // Running on the UI thread
+                        //    rtxt_songlist.Text += filename + "\n";
+                        //});
 
-                    // rtxt_songlist.Text += filename + "\n";
-                    //foreach (char c in System.IO.Path.GetInvalidFileNameChars())
-                    //{
-                    //    filename = filename.Replace(c, '_');
-                    //}
-
-
-                    //initialize the selected device for recording
-                    capture.Initialize();
-
-                    if (!Directory.Exists(path))
-                    {
-                        Directory.CreateDirectory(path);
-                    }
-
-                    //create a wavewriter to write the data to
-                    using (WaveWriter w = new WaveWriter(path + "\\" + filename + ".wav", capture.WaveFormat))
-                    {
-                        //setup an eventhandler to receive the recorded data
-                        capture.DataAvailable += (s, E) =>
-                        {
-                            //save the recorded audio
-                            w.Write(E.Data, E.Offset, E.ByteCount);
-                        };
-
-                        //start recording
-                        capture.Start();
-
-                        //for (int i = 0; i < 100; i++)
+                        // rtxt_songlist.Text += filename + "\n";
+                        //foreach (char c in System.IO.Path.GetInvalidFileNameChars())
                         //{
-                        //    Thread.Sleep(time / 100);
-                        //    prog_recording.Value = 1 * i;
+                        //    filename = filename.Replace(c, '_');
                         //}
 
-                        // Get current window title of active window
-                        string newTitle = GetWindowTitle();
-                        // Wait for the title to change, check 10 times per second
-                        while (newTitle == GetWindowTitle())
+
+                        //initialize the selected device for recording
+                        capture.Initialize();
+
+                        if (!Directory.Exists(path))
                         {
-                            Thread.Sleep(100);
+                            Directory.CreateDirectory(path);
                         }
 
-                        // Thread.Sleep(time);
+                        //create a wavewriter to write the data to
+                        using (WaveWriter w = new WaveWriter(path + "\\" + filename + ".wav", capture.WaveFormat))
+                        {
+                            //setup an eventhandler to receive the recorded data
+                            capture.DataAvailable += (s, E) =>
+                            {
+                            //save the recorded audio
+                            w.Write(E.Data, E.Offset, E.ByteCount);
+                            };
+
+                            //start recording
+                            capture.Start();
+
+                            //for (int i = 0; i < 100; i++)
+                            //{
+                            //    Thread.Sleep(time / 100);
+                            //    prog_recording.Value = 1 * i;
+                            //}
+
+                            // Get current window title of active window
+                            string newTitle = GetWindowTitle();
+                            // Wait for the title to change, check 10 times per second
+                            while (newTitle == GetWindowTitle())
+                            {
+                                Thread.Sleep(100);
+                            }
+
+                            // Thread.Sleep(time);
 
 
-                        //stop recording
-                        capture.Stop();
-                        convertTagAsynch(path, filename, currentlyplaying_);
+                            //stop recording
+                            capture.Stop();
+                            convertTagAsynch(path, filename, currentlyplaying_);
+                        }
                     }
                 }
 
@@ -459,7 +494,14 @@ namespace spotify_info
         {
             using (var fbd = new FolderBrowserDialog())
             {
-                fbd.SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+                if (String.IsNullOrEmpty(path))
+                {
+                    fbd.SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+                } else
+                {
+                    fbd.SelectedPath = path;
+                }
+                
                 DialogResult result = fbd.ShowDialog();
 
                 if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
@@ -511,13 +553,6 @@ namespace spotify_info
         string _secretId = "f72602b2606643a0b05d0c4bf7357608";
         private void btn_tokenGet_Click(object sender, EventArgs e)
         {
-            auth = new AuthorizationCodeAuth(
-                _clientId,
-                _secretId,
-                "http://localhost:4002",
-                "http://localhost:4002",
-                Scope.UserReadCurrentlyPlaying | Scope.UserReadPlaybackState
-            );
             auth.AuthReceived += async (s, payload) =>
             {
                 auth.Stop();
@@ -550,12 +585,12 @@ namespace spotify_info
 
         private void txt_clientID_Click(object sender, EventArgs e)
         {
-            txt_clientID.Text = "";
+            // txt_clientID.Text = "";
         }
 
         private void txt_secretID_Click(object sender, EventArgs e)
         {
-            txt_secretID.Text = "";
+            // txt_secretID.Text = "";
         }
 
         private void form_FormClosing(object sender, FormClosingEventArgs e)
@@ -566,6 +601,8 @@ namespace spotify_info
             s.Host = txt_dbHost.Text;
             s.Port = txt_dbPort.Text;
             s.Path = path;
+            s.oAuthToken = oAuthToken;
+            s.refreshToken = token.RefreshToken;
             DB_Handler.saveSettings(s);
         }
     }
@@ -645,6 +682,8 @@ namespace spotify_info
         public string Host { get; set; }
         public string Port { get; set; }
         public string Path { get; set; }
+        public string oAuthToken { get; set; }
+        public string refreshToken { get; set; }
     }
 
 
