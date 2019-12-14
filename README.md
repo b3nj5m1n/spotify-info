@@ -9,6 +9,12 @@
 - [ffmpeg.exe in system32 folder](https://ffmpeg.zeranoe.com/builds/)
 
 ## How to use
+### Do this once
+[Get a spotify client id and secret id.](https://developer.spotify.com/documentation/general/guides/app-settings/)
+Enter these in the corresponding fields in the application.
+
+### Do this everytime you want to record
+Click on "get access token" and confirm if neccessary.
 Click on "select folder" and select the folder you want your songs to be saved in.
 Click on record and start playing songs in your spotify desktop application.
 Once your done, click the same button again and wait for the current song to finsish.
