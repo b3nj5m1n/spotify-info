@@ -18,6 +18,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace spotify_info
 {
@@ -118,7 +119,7 @@ namespace spotify_info
         }
 
         // Token for Spotify API
-        string oAuthToken = "BQA550EPjHSsYasNi6Kqb1Fu_ZcMIDf-jU6MWmJt85R1cyDse4dAFe6VfWKjIplX9EZrY1IWnIx3Socbik9-hpkOxdsvEJho3bqbvWoz6Jf216WLty_iHd0r1L_4reUfXRPwZ-EdcRpH";
+        string oAuthToken = "BQDOYVAf1qi446ckccYJQJ0NPE3q03RXwR5XLO4FPUNnVqTP1vrd-OERFWGEcmGvbFJO6EifZa7cFHcC1Epl37M8Y3g1yx6I6qY7dfSxvYy5TVl2t7NNd93LlDacvS3IZkEySidNWXkU";
 
         // Returns a currently playing object with all of the available information on the currently playing track
         private currentlyplaying get_Currently_Playing()
@@ -321,6 +322,7 @@ namespace spotify_info
 
                         //stop recording
                         capture.Stop();
+                        convertTagAsynch(path, filename, currentlyplaying_);
                     }
                 }
 
@@ -337,20 +339,17 @@ namespace spotify_info
             });
         }
 
-        void convertTag(string path, string original_filename, currentlyplaying cp)
+        // Method to convert wav to mp3 and tag the mp3 and also delete original wav file
+        void convertTag(string path, string filename, currentlyplaying cp)
         {
-
-        }
-
-        bool wav2mp3(string path, string filename)
-        {
+            // This converts the wav to mp3
             var proc = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
                     // C:\ffmpeg.exe -i 0A5gdlrpAuQqZ2iFgnqBFW.wav 0A5gdlrpAuQqZ2iFgnqBFW.mp3
                     FileName = @"C:\Windows\SysWOW64\cmd.exe",
-                    Arguments = @"/c C:\ffmpeg.exe -i " + path + filename + ".wav " + path + filename + ".mp3",
+                    Arguments = @"/c C:\ffmpeg.exe -i " + path + "\\" + filename + ".wav " + path + "\\" + filename + ".mp3",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     CreateNoWindow = true,
@@ -359,9 +358,57 @@ namespace spotify_info
             };
             proc.Start();
             proc.WaitForExit();
-            return true;
+            proc.Close();
+            // Delete the original wav file
+            File.Delete(path + "\\" + filename + ".wav");
+            // Tag the mp3
+            TagLib.Id3v2.Tag.DefaultVersion = 3;
+            TagLib.Id3v2.Tag.ForceDefaultVersion = true;
+            TagLib.File file = TagLib.File.Create(path + "\\" + filename + ".mp3");
+            SetAlbumArt(cp.item.album.images[0].url, file, path, filename);
+            file.Tag.Title = cp.item.name;
+            // Get artists
+            string[] artists = new string[cp.item.artists.Count];
+            int i = 0;
+            foreach (currentlyplaying.Artist2 artist in cp.item.artists)
+            {
+                artists[i] = artist.name;
+                i++;
+            }
+            file.Tag.Performers = artists;
+            file.Tag.Album = cp.item.album.name;
+            file.Tag.Track = (uint)cp.item.track_number;
+            file.Tag.Year = (uint)Convert.ToInt32(Regex.Match(cp.item.album.release_date, @"(\d)(\d)(\d)(\d)").Value);
+            // MessageBox.Show(cp.item.album.release_date.Split('-')[0]);
+            file.RemoveTags(file.TagTypes & ~file.TagTypesOnDisk);
+            file.Save();
         }
+        // This method sets album cover art for mp3 files https://stackoverflow.com/a/50438153/
+        public void SetAlbumArt(string url, TagLib.File file, string path_, string filename)
+        {
+            string path = string.Format(@"{0}\{1}.jpg", path_, filename);
+            byte[] imageBytes;
+            using (WebClient client = new WebClient())
+            {
+                imageBytes = client.DownloadData(url);
+            }
 
+            TagLib.Id3v2.AttachedPictureFrame cover = new TagLib.Id3v2.AttachedPictureFrame
+            {
+                Type = TagLib.PictureType.FrontCover,
+                Description = "Cover",
+                MimeType = System.Net.Mime.MediaTypeNames.Image.Jpeg,
+                Data = imageBytes,
+                TextEncoding = TagLib.StringType.UTF16
+
+
+            };
+            file.Tag.Pictures = new TagLib.IPicture[] { cover };
+        }
+        void convertTagAsynch(string path, string filename, currentlyplaying cp)
+        {
+            Task.Run(() => convertTag(path, filename, cp));
+        }
 
         private void btn_selectdFolder_Click(object sender, EventArgs e)
         {
@@ -409,7 +456,7 @@ namespace spotify_info
 
         private void btn_wav2mp3_Click(object sender, EventArgs e)
         {
-            wav2mp3(@"C:\Users\b3nj4m1n\Music\spotifydownloader\", "0A5gdlrpAuQqZ2iFgnqBFW");
+            convertTagAsynch(@"C:\Users\b3nj4m1n\Music\spotifydownloader\", "0A5gdlrpAuQqZ2iFgnqBFW", get_Currently_Playing());
         }
     }
 

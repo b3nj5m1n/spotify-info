@@ -43,10 +43,10 @@
             this.btn_dbInsertCurrent = new System.Windows.Forms.Button();
             this.btn_connectDB = new System.Windows.Forms.Button();
             this.grp_Record = new System.Windows.Forms.GroupBox();
+            this.btn_wav2mp3 = new System.Windows.Forms.Button();
             this.btn_useLocalDatabase = new System.Windows.Forms.Button();
             this.btn_selectdFolder = new System.Windows.Forms.Button();
             this.btn_toggleRecord = new System.Windows.Forms.Button();
-            this.btn_wav2mp3 = new System.Windows.Forms.Button();
             this.grp_currentTrack.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pic_Cover)).BeginInit();
             this.grp_db.SuspendLayout();
@@ -238,6 +238,17 @@
             this.grp_Record.TabStop = false;
             this.grp_Record.Text = "Record";
             // 
+            // btn_wav2mp3
+            // 
+            this.btn_wav2mp3.Location = new System.Drawing.Point(170, 239);
+            this.btn_wav2mp3.Name = "btn_wav2mp3";
+            this.btn_wav2mp3.Size = new System.Drawing.Size(75, 23);
+            this.btn_wav2mp3.TabIndex = 3;
+            this.btn_wav2mp3.Text = "button1";
+            this.btn_wav2mp3.UseVisualStyleBackColor = true;
+            this.btn_wav2mp3.Visible = false;
+            this.btn_wav2mp3.Click += new System.EventHandler(this.btn_wav2mp3_Click);
+            // 
             // btn_useLocalDatabase
             // 
             this.btn_useLocalDatabase.Dock = System.Windows.Forms.DockStyle.Top;
@@ -273,16 +284,6 @@
             this.btn_toggleRecord.Text = "Record";
             this.btn_toggleRecord.UseVisualStyleBackColor = true;
             this.btn_toggleRecord.Click += new System.EventHandler(this.btn_toggleRecord_Click);
-            // 
-            // btn_wav2mp3
-            // 
-            this.btn_wav2mp3.Location = new System.Drawing.Point(62, 196);
-            this.btn_wav2mp3.Name = "btn_wav2mp3";
-            this.btn_wav2mp3.Size = new System.Drawing.Size(75, 23);
-            this.btn_wav2mp3.TabIndex = 3;
-            this.btn_wav2mp3.Text = "button1";
-            this.btn_wav2mp3.UseVisualStyleBackColor = true;
-            this.btn_wav2mp3.Click += new System.EventHandler(this.btn_wav2mp3_Click);
             // 
             // form
             // 
