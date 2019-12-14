@@ -1,4 +1,7 @@
-﻿using MongoDB.Bson;
+﻿using CSCore;
+using CSCore.SoundIn;
+using CSCore.Codecs.WAV;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -217,7 +220,99 @@ namespace spotify_info
             if (!pathSpecified)
             {
                 MessageBox.Show("Please select a folder to save the files in.");
+            } else
+            {
+                if (stopRecording)
+                {
+                    stopRecording = false;
+                    Task t = new Task(loopRecord);
+                    t.Start();
+                } else
+                {
+                    stopRecording = true;
+                }
             }
+        }
+
+        bool stopRecording = true;
+        void loopRecord()
+        {
+            // Get current window title of active window
+            string title = GetWindowTitle();
+            // Wait for the title to change, check 10 times per second
+            while (title == GetWindowTitle())
+            {
+                Thread.Sleep(100);
+            }
+            while (!stopRecording)
+            {
+                using (WasapiCapture capture = new WasapiLoopbackCapture())
+                {
+
+                    string filename = GetWindowTitle();
+
+                    //rtxt_songlist.Invoke((MethodInvoker)delegate {
+                    //    // Running on the UI thread
+                    //    rtxt_songlist.Text += filename + "\n";
+                    //});
+
+                    // rtxt_songlist.Text += filename + "\n";
+                    foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+                    {
+                        filename = filename.Replace(c, '_');
+                    }
+
+
+
+                    //initialize the selected device for recording
+                    capture.Initialize();
+
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+
+                    //create a wavewriter to write the data to
+                    using (WaveWriter w = new WaveWriter(path + "\\" + filename + ".wav", capture.WaveFormat))
+                    {
+                        //setup an eventhandler to receive the recorded data
+                        capture.DataAvailable += (s, E) =>
+                        {
+                            //save the recorded audio
+                            w.Write(E.Data, E.Offset, E.ByteCount);
+                        };
+
+                        //start recording
+                        capture.Start();
+
+                        //for (int i = 0; i < 100; i++)
+                        //{
+                        //    Thread.Sleep(time / 100);
+                        //    prog_recording.Value = 1 * i;
+                        //}
+
+                        // Get current window title of active window
+                        string newTitle = GetWindowTitle();
+                        // Wait for the title to change, check 10 times per second
+                        while (newTitle == GetWindowTitle())
+                        {
+                            Thread.Sleep(100);
+                        }
+
+                        // Thread.Sleep(time);
+
+
+                        //stop recording
+                        capture.Stop();
+                    }
+                }
+
+                if (title == GetWindowTitle())
+                {
+                    stopRecording = true;
+                }
+            }
+            MessageBox.Show("Recording session complete.");
         }
 
         private void btn_selectdFolder_Click(object sender, EventArgs e)
