@@ -55,6 +55,17 @@ namespace spotify_info
             }
             return null;
         }
+        private string GetWindowTitleByHandle(IntPtr h)
+        {
+            const int nChars = 256;
+            StringBuilder Buff = new StringBuilder(nChars);
+
+            if (GetWindowText(h, Buff, nChars) > 0)
+            {
+                return Buff.ToString();
+            }
+            return null;
+        }
         #endregion
 
         // When pressed, you have 5 seconds to focus the spotif application window
@@ -66,20 +77,30 @@ namespace spotify_info
 
         private void get_Process()
         {
-            // Delay to wait for to focus the spotify application in ms
-            int delay = 2500;
-            // Wait for delay
-            for (int i = 0; i < delay; i += delay / 100)
-            {
-                Thread.Sleep(delay / 100);
-                prog_getspotifyprocess.Invoke((MethodInvoker)delegate
-                {
-                    prog_getspotifyprocess.Value = (prog_getspotifyprocess.Value + 1) % 100;
-                });
-            }
+            //// Delay to wait for to focus the spotify application in ms
+            //int delay = 2500;
+            //// Wait for delay
+            //for (int i = 0; i < delay; i += delay / 100)
+            //{
+            //    Thread.Sleep(delay / 100);
+            //    prog_getspotifyprocess.Invoke((MethodInvoker)delegate
+            //    {
+            //        prog_getspotifyprocess.Value = (prog_getspotifyprocess.Value + 1) % 100;
+            //    });
+            //}
 
             // Get process handle of active window
-            handle = GetForegroundWindow();
+            //handle = GetForegroundWindow();
+
+            // Get all the processes named spotify and look for one with an open window
+            foreach (Process process in Process.GetProcessesByName("Spotify"))
+            {
+                if (GetWindowTitleByHandle(process.MainWindowHandle) != null)
+                {
+                    handle = process.MainWindowHandle;
+                }
+            }
+            ;
             // Change the text of the button to the window name
             btn_getProcess.Invoke((MethodInvoker)delegate
             {
@@ -219,6 +240,7 @@ namespace spotify_info
         bool useLocalDB = false;
         private void btn_toggleRecord_Click(object sender, EventArgs e)
         {
+            get_Process();
             if (!pathSpecified)
             {
                 MessageBox.Show("Please select a folder to save the files in.");

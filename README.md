@@ -9,5 +9,6 @@
 - [ffmpeg.exe in system32 folder](https://ffmpeg.zeranoe.com/builds/)
 
 ## How to use
-Open up the application, click on "Get spotify process". Now switch to the window of your spotify application, pause whatever you are playing for the moment. After 5 seconds, the text of the button will change to "Spotify Free", "Spotify Premium" or something like that.
-Now you can click on "Listen for song changes" and start playing songs.
+Click on "select folder" and select the folder you want your songs to be saved in.
+Click on record and start playing songs in your spotify desktop application.
+Once your done, click the same button again and wait for the current song to finsish.
