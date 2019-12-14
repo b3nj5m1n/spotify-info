@@ -38,14 +38,15 @@
             this.lbl_cTrackName = new System.Windows.Forms.Label();
             this.btn_toggleListener = new System.Windows.Forms.Button();
             this.grp_db = new System.Windows.Forms.GroupBox();
+            this.txt_dbHost = new System.Windows.Forms.TextBox();
+            this.txt_dbPort = new System.Windows.Forms.TextBox();
             this.btn_dbInsertCurrent = new System.Windows.Forms.Button();
             this.btn_connectDB = new System.Windows.Forms.Button();
             this.grp_Record = new System.Windows.Forms.GroupBox();
             this.btn_useLocalDatabase = new System.Windows.Forms.Button();
             this.btn_selectdFolder = new System.Windows.Forms.Button();
             this.btn_toggleRecord = new System.Windows.Forms.Button();
-            this.txt_dbPort = new System.Windows.Forms.TextBox();
-            this.txt_dbHost = new System.Windows.Forms.TextBox();
+            this.btn_wav2mp3 = new System.Windows.Forms.Button();
             this.grp_currentTrack.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pic_Cover)).BeginInit();
             this.grp_db.SuspendLayout();
@@ -172,6 +173,32 @@
             this.grp_db.TabStop = false;
             this.grp_db.Text = "Local Database";
             // 
+            // txt_dbHost
+            // 
+            this.txt_dbHost.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.txt_dbHost.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.txt_dbHost.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.txt_dbHost.Font = new System.Drawing.Font("Microsoft YaHei", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txt_dbHost.ForeColor = System.Drawing.Color.White;
+            this.txt_dbHost.Location = new System.Drawing.Point(3, 230);
+            this.txt_dbHost.Name = "txt_dbHost";
+            this.txt_dbHost.Size = new System.Drawing.Size(242, 32);
+            this.txt_dbHost.TabIndex = 4;
+            this.txt_dbHost.Text = "localhost";
+            // 
+            // txt_dbPort
+            // 
+            this.txt_dbPort.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.txt_dbPort.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.txt_dbPort.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.txt_dbPort.Font = new System.Drawing.Font("Microsoft YaHei", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txt_dbPort.ForeColor = System.Drawing.Color.White;
+            this.txt_dbPort.Location = new System.Drawing.Point(3, 262);
+            this.txt_dbPort.Name = "txt_dbPort";
+            this.txt_dbPort.Size = new System.Drawing.Size(242, 32);
+            this.txt_dbPort.TabIndex = 3;
+            this.txt_dbPort.Text = "27017";
+            // 
             // btn_dbInsertCurrent
             // 
             this.btn_dbInsertCurrent.Dock = System.Windows.Forms.DockStyle.Top;
@@ -198,6 +225,7 @@
             // 
             // grp_Record
             // 
+            this.grp_Record.Controls.Add(this.btn_wav2mp3);
             this.grp_Record.Controls.Add(this.btn_useLocalDatabase);
             this.grp_Record.Controls.Add(this.btn_selectdFolder);
             this.grp_Record.Controls.Add(this.btn_toggleRecord);
@@ -246,31 +274,15 @@
             this.btn_toggleRecord.UseVisualStyleBackColor = true;
             this.btn_toggleRecord.Click += new System.EventHandler(this.btn_toggleRecord_Click);
             // 
-            // txt_dbPort
+            // btn_wav2mp3
             // 
-            this.txt_dbPort.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.txt_dbPort.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.txt_dbPort.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.txt_dbPort.Font = new System.Drawing.Font("Microsoft YaHei", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txt_dbPort.ForeColor = System.Drawing.Color.White;
-            this.txt_dbPort.Location = new System.Drawing.Point(3, 262);
-            this.txt_dbPort.Name = "txt_dbPort";
-            this.txt_dbPort.Size = new System.Drawing.Size(242, 32);
-            this.txt_dbPort.TabIndex = 3;
-            this.txt_dbPort.Text = "27017";
-            // 
-            // txt_dbHost
-            // 
-            this.txt_dbHost.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.txt_dbHost.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.txt_dbHost.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.txt_dbHost.Font = new System.Drawing.Font("Microsoft YaHei", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txt_dbHost.ForeColor = System.Drawing.Color.White;
-            this.txt_dbHost.Location = new System.Drawing.Point(3, 230);
-            this.txt_dbHost.Name = "txt_dbHost";
-            this.txt_dbHost.Size = new System.Drawing.Size(242, 32);
-            this.txt_dbHost.TabIndex = 4;
-            this.txt_dbHost.Text = "localhost";
+            this.btn_wav2mp3.Location = new System.Drawing.Point(62, 196);
+            this.btn_wav2mp3.Name = "btn_wav2mp3";
+            this.btn_wav2mp3.Size = new System.Drawing.Size(75, 23);
+            this.btn_wav2mp3.TabIndex = 3;
+            this.btn_wav2mp3.Text = "button1";
+            this.btn_wav2mp3.UseVisualStyleBackColor = true;
+            this.btn_wav2mp3.Click += new System.EventHandler(this.btn_wav2mp3_Click);
             // 
             // form
             // 
@@ -317,6 +329,7 @@
         private System.Windows.Forms.Button btn_useLocalDatabase;
         private System.Windows.Forms.TextBox txt_dbHost;
         private System.Windows.Forms.TextBox txt_dbPort;
+        private System.Windows.Forms.Button btn_wav2mp3;
     }
 }
 

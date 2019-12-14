@@ -17,6 +17,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace spotify_info
 {
@@ -336,6 +337,32 @@ namespace spotify_info
             });
         }
 
+        void convertTag(string path, string original_filename, currentlyplaying cp)
+        {
+
+        }
+
+        bool wav2mp3(string path, string filename)
+        {
+            var proc = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    // C:\ffmpeg.exe -i 0A5gdlrpAuQqZ2iFgnqBFW.wav 0A5gdlrpAuQqZ2iFgnqBFW.mp3
+                    FileName = @"C:\Windows\SysWOW64\cmd.exe",
+                    Arguments = @"/c C:\ffmpeg.exe -i " + path + filename + ".wav " + path + filename + ".mp3",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true,
+                    WorkingDirectory = path
+                }
+            };
+            proc.Start();
+            proc.WaitForExit();
+            return true;
+        }
+
+
         private void btn_selectdFolder_Click(object sender, EventArgs e)
         {
             using (var fbd = new FolderBrowserDialog())
@@ -378,6 +405,11 @@ namespace spotify_info
         {
             DB_Handler.host = txt_dbHost.Text;
             DB_Handler.port = txt_dbPort.Text;
+        }
+
+        private void btn_wav2mp3_Click(object sender, EventArgs e)
+        {
+            wav2mp3(@"C:\Users\b3nj4m1n\Music\spotifydownloader\", "0A5gdlrpAuQqZ2iFgnqBFW");
         }
     }
 

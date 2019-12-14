@@ -6,6 +6,7 @@
 - [Spotify desktop](https://www.spotify.com/de/download/windows/)
 - [Spotify API token for your account](https://developer.spotify.com/console/get-users-currently-playing-track/)
 - [MongoDB installed on your computer](https://www.mongodb.com/download-center/community)
+- [ffmpeg.exe in system32 folder](https://ffmpeg.zeranoe.com/builds/)
 
 ## How to use
 Open up the application, click on "Get spotify process". Now switch to the window of your spotify application, pause whatever you are playing for the moment. After 5 seconds, the text of the button will change to "Spotify Free", "Spotify Premium" or something like that.
