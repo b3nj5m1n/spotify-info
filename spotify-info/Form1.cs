@@ -155,17 +155,23 @@ namespace spotify_info
             httpWebRequest.Method = "GET";
             httpWebRequest.Headers.Add("Authorization", "Bearer " + txt_accessToken.Text); // oAuthToken);
 
-            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-
-            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            try
             {
-                // Parse the returned json to a c# object
-                string response = streamReader.ReadToEnd();
-                currentlyplaying currentlyplaying_ = Newtonsoft.Json.JsonConvert.DeserializeObject<currentlyplaying>(response);
+                var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                {
+                    // Parse the returned json to a c# object
+                    string response = streamReader.ReadToEnd();
+                    currentlyplaying currentlyplaying_ = Newtonsoft.Json.JsonConvert.DeserializeObject<currentlyplaying>(response);
 
-                return currentlyplaying_;
+                    return currentlyplaying_;
+                }
             }
-
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return null;
+            }
         }
 
         // This will check if spotify started playing a new song
@@ -407,6 +413,10 @@ namespace spotify_info
             // MessageBox.Show(cp.item.album.release_date.Split('-')[0]);
             file.RemoveTags(file.TagTypes & ~file.TagTypesOnDisk);
             file.Save();
+            if (useLocalDB)
+            {
+                DB_Handler.insertSong(cp, path, true, DateTime.Now);
+            }
         }
         // This method sets album cover art for mp3 files https://stackoverflow.com/a/50438153/
         public void SetAlbumArt(string url, TagLib.File file, string path_, string filename)
@@ -506,6 +516,7 @@ namespace spotify_info
         }
 
         // Tests if song already exists in database
+        // OBSOLUTE SINCE SKIPPING TRACKS REQURIES SPOTIFY PREMIUM
         bool doesExist(string id)
         {
 
