@@ -61,8 +61,19 @@ namespace spotify_info
                     pathSpecified = true;
                     btn_selectdFolder.Text = path;
                 }
+                refreshToken();
+                resetExpires();
             }
         }
+
+        int timePassed = 0;
+        // Access token will be renewed every 20 minutes
+        int threshold = 60*20;//60 * 50;
+        void resetExpires()
+        {
+            timePassed = 0;
+        }
+
 
         #region Process/Window
         // Get the process of the window currently in focus
@@ -604,6 +615,22 @@ namespace spotify_info
             s.oAuthToken = oAuthToken;
             s.refreshToken = token.RefreshToken;
             DB_Handler.saveSettings(s);
+        }
+
+        private void timer_Tick(object sender, EventArgs e)
+        {
+            timePassed += 1;
+            updateTxtExpires();
+            if (threshold < timePassed)
+            {
+                refreshToken();
+                resetExpires();
+            }
+        }
+
+        void updateTxtExpires()
+        {
+            txt_tokenExpires.Text = "Token expires in: " + ((60*60 - timePassed)/60).ToString() + " minutes";
         }
     }
 

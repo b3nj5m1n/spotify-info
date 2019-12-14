@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.btn_getProcess = new System.Windows.Forms.Button();
             this.prog_getspotifyprocess = new System.Windows.Forms.ProgressBar();
             this.grp_currentTrack = new System.Windows.Forms.GroupBox();
@@ -51,6 +52,8 @@
             this.btn_useLocalDatabase = new System.Windows.Forms.Button();
             this.btn_selectdFolder = new System.Windows.Forms.Button();
             this.btn_toggleRecord = new System.Windows.Forms.Button();
+            this.txt_tokenExpires = new System.Windows.Forms.TextBox();
+            this.timer = new System.Windows.Forms.Timer(this.components);
             this.grp_currentTrack.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pic_Cover)).BeginInit();
             this.grp_db.SuspendLayout();
@@ -82,6 +85,7 @@
             // 
             // grp_currentTrack
             // 
+            this.grp_currentTrack.Controls.Add(this.txt_tokenExpires);
             this.grp_currentTrack.Controls.Add(this.txt_clientID);
             this.grp_currentTrack.Controls.Add(this.txt_secretID);
             this.grp_currentTrack.Controls.Add(this.btn_tokenRefresh);
@@ -109,7 +113,6 @@
             this.txt_clientID.ForeColor = System.Drawing.Color.White;
             this.txt_clientID.Location = new System.Drawing.Point(3, 269);
             this.txt_clientID.Name = "txt_clientID";
-            this.txt_clientID.ReadOnly = true;
             this.txt_clientID.Size = new System.Drawing.Size(296, 32);
             this.txt_clientID.TabIndex = 7;
             this.txt_clientID.Text = "client Id";
@@ -124,7 +127,6 @@
             this.txt_secretID.ForeColor = System.Drawing.Color.White;
             this.txt_secretID.Location = new System.Drawing.Point(3, 301);
             this.txt_secretID.Name = "txt_secretID";
-            this.txt_secretID.ReadOnly = true;
             this.txt_secretID.Size = new System.Drawing.Size(296, 32);
             this.txt_secretID.TabIndex = 6;
             this.txt_secretID.Text = "secret Id";
@@ -349,6 +351,26 @@
             this.btn_toggleRecord.UseVisualStyleBackColor = true;
             this.btn_toggleRecord.Click += new System.EventHandler(this.btn_toggleRecord_Click);
             // 
+            // txt_tokenExpires
+            // 
+            this.txt_tokenExpires.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.txt_tokenExpires.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.txt_tokenExpires.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.txt_tokenExpires.Font = new System.Drawing.Font("Microsoft YaHei", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txt_tokenExpires.ForeColor = System.Drawing.Color.White;
+            this.txt_tokenExpires.Location = new System.Drawing.Point(3, 237);
+            this.txt_tokenExpires.Name = "txt_tokenExpires";
+            this.txt_tokenExpires.ReadOnly = true;
+            this.txt_tokenExpires.Size = new System.Drawing.Size(296, 32);
+            this.txt_tokenExpires.TabIndex = 8;
+            this.txt_tokenExpires.Text = "Token expires in: ";
+            // 
+            // timer
+            // 
+            this.timer.Enabled = true;
+            this.timer.Interval = 1000;
+            this.timer.Tick += new System.EventHandler(this.timer_Tick);
+            // 
             // form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -401,6 +423,8 @@
         private System.Windows.Forms.Button btn_tokenGet;
         private System.Windows.Forms.TextBox txt_clientID;
         private System.Windows.Forms.TextBox txt_secretID;
+        private System.Windows.Forms.TextBox txt_tokenExpires;
+        private System.Windows.Forms.Timer timer;
     }
 }
 
