@@ -31,13 +31,17 @@
             this.btn_getProcess = new System.Windows.Forms.Button();
             this.prog_getspotifyprocess = new System.Windows.Forms.ProgressBar();
             this.grp_currentTrack = new System.Windows.Forms.GroupBox();
-            this.lbl_cTrackName = new System.Windows.Forms.Label();
-            this.btn_updateCurrentlyPlaying = new System.Windows.Forms.Button();
-            this.pic_Cover = new System.Windows.Forms.PictureBox();
             this.lbl_cTrackArtist = new System.Windows.Forms.Label();
+            this.pic_Cover = new System.Windows.Forms.PictureBox();
+            this.btn_updateCurrentlyPlaying = new System.Windows.Forms.Button();
+            this.lbl_cTrackName = new System.Windows.Forms.Label();
             this.btn_toggleListener = new System.Windows.Forms.Button();
+            this.grp_db = new System.Windows.Forms.GroupBox();
+            this.btn_connectDB = new System.Windows.Forms.Button();
+            this.btn_dbInsertCurrent = new System.Windows.Forms.Button();
             this.grp_currentTrack.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pic_Cover)).BeginInit();
+            this.grp_db.SuspendLayout();
             this.SuspendLayout();
             // 
             // btn_getProcess
@@ -77,14 +81,23 @@
             this.grp_currentTrack.TabStop = false;
             this.grp_currentTrack.Text = "Currently playing:";
             // 
-            // lbl_cTrackName
+            // lbl_cTrackArtist
             // 
-            this.lbl_cTrackName.AutoSize = true;
-            this.lbl_cTrackName.Location = new System.Drawing.Point(23, 185);
-            this.lbl_cTrackName.Name = "lbl_cTrackName";
-            this.lbl_cTrackName.Size = new System.Drawing.Size(103, 13);
-            this.lbl_cTrackName.TabIndex = 0;
-            this.lbl_cTrackName.Text = "Current Track Name";
+            this.lbl_cTrackArtist.AutoSize = true;
+            this.lbl_cTrackArtist.Location = new System.Drawing.Point(23, 207);
+            this.lbl_cTrackArtist.Name = "lbl_cTrackArtist";
+            this.lbl_cTrackArtist.Size = new System.Drawing.Size(98, 13);
+            this.lbl_cTrackArtist.TabIndex = 3;
+            this.lbl_cTrackArtist.Text = "Current Track Artist";
+            // 
+            // pic_Cover
+            // 
+            this.pic_Cover.Location = new System.Drawing.Point(26, 19);
+            this.pic_Cover.Name = "pic_Cover";
+            this.pic_Cover.Size = new System.Drawing.Size(150, 150);
+            this.pic_Cover.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pic_Cover.TabIndex = 2;
+            this.pic_Cover.TabStop = false;
             // 
             // btn_updateCurrentlyPlaying
             // 
@@ -98,23 +111,14 @@
             this.btn_updateCurrentlyPlaying.UseVisualStyleBackColor = true;
             this.btn_updateCurrentlyPlaying.Click += new System.EventHandler(this.btn_updateCurrentlyPlaying_Click);
             // 
-            // pic_Cover
+            // lbl_cTrackName
             // 
-            this.pic_Cover.Location = new System.Drawing.Point(26, 19);
-            this.pic_Cover.Name = "pic_Cover";
-            this.pic_Cover.Size = new System.Drawing.Size(150, 150);
-            this.pic_Cover.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pic_Cover.TabIndex = 2;
-            this.pic_Cover.TabStop = false;
-            // 
-            // lbl_cTrackArtist
-            // 
-            this.lbl_cTrackArtist.AutoSize = true;
-            this.lbl_cTrackArtist.Location = new System.Drawing.Point(23, 207);
-            this.lbl_cTrackArtist.Name = "lbl_cTrackArtist";
-            this.lbl_cTrackArtist.Size = new System.Drawing.Size(98, 13);
-            this.lbl_cTrackArtist.TabIndex = 3;
-            this.lbl_cTrackArtist.Text = "Current Track Artist";
+            this.lbl_cTrackName.AutoSize = true;
+            this.lbl_cTrackName.Location = new System.Drawing.Point(23, 185);
+            this.lbl_cTrackName.Name = "lbl_cTrackName";
+            this.lbl_cTrackName.Size = new System.Drawing.Size(103, 13);
+            this.lbl_cTrackName.TabIndex = 0;
+            this.lbl_cTrackName.Text = "Current Track Name";
             // 
             // btn_toggleListener
             // 
@@ -129,12 +133,50 @@
             this.btn_toggleListener.UseVisualStyleBackColor = true;
             this.btn_toggleListener.Click += new System.EventHandler(this.btn_toggleListener_Click);
             // 
+            // grp_db
+            // 
+            this.grp_db.Controls.Add(this.btn_dbInsertCurrent);
+            this.grp_db.Controls.Add(this.btn_connectDB);
+            this.grp_db.Dock = System.Windows.Forms.DockStyle.Left;
+            this.grp_db.ForeColor = System.Drawing.Color.White;
+            this.grp_db.Location = new System.Drawing.Point(302, 99);
+            this.grp_db.Name = "grp_db";
+            this.grp_db.Size = new System.Drawing.Size(248, 314);
+            this.grp_db.TabIndex = 4;
+            this.grp_db.TabStop = false;
+            this.grp_db.Text = "Local Database";
+            // 
+            // btn_connectDB
+            // 
+            this.btn_connectDB.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btn_connectDB.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btn_connectDB.Location = new System.Drawing.Point(3, 16);
+            this.btn_connectDB.Name = "btn_connectDB";
+            this.btn_connectDB.Size = new System.Drawing.Size(242, 23);
+            this.btn_connectDB.TabIndex = 0;
+            this.btn_connectDB.Text = "Connect to Database";
+            this.btn_connectDB.UseVisualStyleBackColor = true;
+            this.btn_connectDB.Click += new System.EventHandler(this.btn_connectDB_Click);
+            // 
+            // btn_dbInsertCurrent
+            // 
+            this.btn_dbInsertCurrent.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btn_dbInsertCurrent.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btn_dbInsertCurrent.Location = new System.Drawing.Point(3, 39);
+            this.btn_dbInsertCurrent.Name = "btn_dbInsertCurrent";
+            this.btn_dbInsertCurrent.Size = new System.Drawing.Size(242, 23);
+            this.btn_dbInsertCurrent.TabIndex = 1;
+            this.btn_dbInsertCurrent.Text = "Insert current song";
+            this.btn_dbInsertCurrent.UseVisualStyleBackColor = true;
+            this.btn_dbInsertCurrent.Click += new System.EventHandler(this.btn_dbInsertCurrent_Click);
+            // 
             // form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.grp_db);
             this.Controls.Add(this.btn_toggleListener);
             this.Controls.Add(this.grp_currentTrack);
             this.Controls.Add(this.prog_getspotifyprocess);
@@ -145,6 +187,7 @@
             this.grp_currentTrack.ResumeLayout(false);
             this.grp_currentTrack.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pic_Cover)).EndInit();
+            this.grp_db.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -159,6 +202,9 @@
         private System.Windows.Forms.PictureBox pic_Cover;
         private System.Windows.Forms.Label lbl_cTrackArtist;
         private System.Windows.Forms.Button btn_toggleListener;
+        private System.Windows.Forms.GroupBox grp_db;
+        private System.Windows.Forms.Button btn_connectDB;
+        private System.Windows.Forms.Button btn_dbInsertCurrent;
     }
 }
 

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -62,18 +64,20 @@ namespace spotify_info
             // Delay to wait for to focus the spotify application in ms
             int delay = 5000;
             // Wait for delay
-            for (int i = 0; i < delay; i+=delay/100)
+            for (int i = 0; i < delay; i += delay / 100)
             {
-                Thread.Sleep(delay/100);
-                prog_getspotifyprocess.Invoke((MethodInvoker)delegate {
+                Thread.Sleep(delay / 100);
+                prog_getspotifyprocess.Invoke((MethodInvoker)delegate
+                {
                     prog_getspotifyprocess.Value = prog_getspotifyprocess.Value + 1 % 100;
                 });
             }
-            
+
             // Get process handle of active window
             handle = GetForegroundWindow();
             // Change the text of the button to the window name
-            btn_getProcess.Invoke((MethodInvoker)delegate {
+            btn_getProcess.Invoke((MethodInvoker)delegate
+            {
                 btn_getProcess.Text = "Task name: " + GetWindowTitle();
             });
         }
@@ -84,29 +88,33 @@ namespace spotify_info
             update_currently_playing();
         }
 
+        currentlyplaying currentlyplaying_;
         private void update_currently_playing()
         {
             // Get curretly playing object
-            currentlyplaying currentlyplaying_ = get_Currently_Playing();
+            currentlyplaying_ = get_Currently_Playing();
             if (currentlyplaying_.item != null)
             {
                 // Set Track name label to track name
-                lbl_cTrackName.Invoke((MethodInvoker)delegate {
+                lbl_cTrackName.Invoke((MethodInvoker)delegate
+                {
                     lbl_cTrackName.Text = currentlyplaying_.item.name;
                 });
                 // Put list of artists into a string and set as text for Track artists label
-                lbl_cTrackArtist.Invoke((MethodInvoker)delegate {
+                lbl_cTrackArtist.Invoke((MethodInvoker)delegate
+                {
                     lbl_cTrackArtist.Text = String.Join(", ", currentlyplaying_.item.artists.Select(p => p.name).ToArray());
                 });
                 // Display cover in picture box
-                pic_Cover.Invoke((MethodInvoker)delegate {
+                pic_Cover.Invoke((MethodInvoker)delegate
+                {
                     pic_Cover.Load(currentlyplaying_.item.album.images[0].url);
                 });
             }
         }
 
         // Token for Spotify API
-        string oAuthToken = "BQA0cjcTeyDOwmXofJEOLJs7FTmonf2UsvzLaVhZjRq6n1C_FgwBJV_HENLbhzYsumEv1e0fmS85sWxddheL3e5_ro0rCqszq2Z4AVOmctEjWRhT1RzSfBYOgaDDZ8v0oHPx5uV4A0s";
+        string oAuthToken = "BQDGW5FQN7kU8zx5lIZq54k5Qjxs33PFKWKRpjibeI8sigPbFbxOmNBEfJMKR3CmLudkxR9_sqLhCFkMpr13lKCPSvOqtMBDHSZU6r-ozIgSpBJXCFQ25fma_gvmkC10CAa_cgCFmU8";
 
         // Returns a currently playing object with all of the available information on the currently playing track
         private currentlyplaying get_Currently_Playing()
@@ -125,7 +133,7 @@ namespace spotify_info
                 // Parse the returned json to a c# object
                 string response = streamReader.ReadToEnd();
                 currentlyplaying currentlyplaying_ = Newtonsoft.Json.JsonConvert.DeserializeObject<currentlyplaying>(response);
-                
+
                 return currentlyplaying_;
             }
 
@@ -149,7 +157,7 @@ namespace spotify_info
                     Task.Delay(600);
                     update_currently_playing();
                 }
-                
+
             }
         }
 
@@ -161,10 +169,72 @@ namespace spotify_info
                 listen = true;
                 Task listenTask = new Task(song_change_listener);
                 listenTask.Start();
-            } else
+            }
+            else
             {
                 listen = false;
             }
         }
+
+        private void btn_connectDB_Click(object sender, EventArgs e)
+        {
+            // DB_Handler dB_Handler = new DB_Handler();
+            bool live = DB_Handler.testConnection();
+            if (live)
+            {
+                btn_connectDB.BackColor = Color.LightGreen;
+            } else
+            {
+                btn_connectDB.BackColor = Color.IndianRed;
+            }
+        }
+
+        private void btn_dbInsertCurrent_Click(object sender, EventArgs e)
+        {
+            DB_Handler.insertSong(currentlyplaying_, "C:", false, DateTime.Now);
+        }
     }
+
+    class DB_Handler
+    {
+        static string database_name = "spotify_downloader";
+        static string collection_name = "songs";
+        public static bool testConnection()
+        {
+            var client = new MongoClient("mongodb://localhost:27017");
+            var db = client.GetDatabase(database_name);
+            bool live = db.RunCommandAsync((Command<BsonDocument>)"{ping:1}")
+                .Wait(1000);
+            return live;
+
+            // var coll = db.GetCollection<currentlyplaying>(collection_name);
+            // var document = new currentlyplaying();
+            // coll.InsertOne(document);
+        }
+
+        // Tests if song already exists in database
+        bool doesExist(string id)
+        {
+
+            return false;
+        }
+
+        // Inserts song into database
+        public static void insertSong(currentlyplaying currentlyplaying_, string path_, bool downloaded_, DateTime dateTime_)
+        {
+            var client = new MongoClient("mongodb://localhost:27017");
+            var db = client.GetDatabase(database_name);
+            var coll = db.GetCollection<song>(collection_name);
+            var document = new song();
+            document.song_info = currentlyplaying_;
+            document.local_Info = new song.Local_info();
+            document.local_Info.path = path_;
+            document.local_Info.downloaded = downloaded_;
+            document.local_Info.time = dateTime_;
+            coll.InsertOne(document);
+        }
+
+    }
+
+
 }
