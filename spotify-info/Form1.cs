@@ -233,9 +233,15 @@ namespace spotify_info
                     }
                     Task t = new Task(loopRecord);
                     t.Start();
+                    btn_toggleRecord.Text = "Waiting for new song...";
+                    btn_toggleRecord.BackColor = Color.Yellow;
+                    btn_toggleRecord.ForeColor = Color.Black;
                 } else
                 {
                     stopRecording = true;
+                    btn_toggleRecord.Text = "Finishing recording...";
+                    btn_toggleRecord.BackColor = Color.Yellow;
+                    btn_toggleRecord.ForeColor = Color.Black;
                 }
             }
         }
@@ -250,6 +256,12 @@ namespace spotify_info
             {
                 Thread.Sleep(100);
             }
+            btn_toggleRecord.Invoke((MethodInvoker)delegate
+            {
+                btn_toggleRecord.Text = "Recording...";
+                btn_toggleRecord.BackColor = Color.LightGreen;
+                btn_toggleRecord.ForeColor = Color.White;
+            });
             while (!stopRecording)
             {
                 using (WasapiCapture capture = new WasapiLoopbackCapture())
@@ -316,7 +328,12 @@ namespace spotify_info
                     stopRecording = true;
                 }
             }
-            MessageBox.Show("Recording session complete.");
+            btn_toggleRecord.Invoke((MethodInvoker)delegate
+            {
+                btn_toggleRecord.Text = "Record";
+                btn_toggleRecord.BackColor = Color.FromArgb(30,30,30);
+                btn_toggleRecord.ForeColor = Color.White;
+            });
         }
 
         private void btn_selectdFolder_Click(object sender, EventArgs e)
