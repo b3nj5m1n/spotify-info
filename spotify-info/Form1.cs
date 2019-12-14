@@ -119,23 +119,26 @@ namespace spotify_info
         {
             // Get curretly playing object
             currentlyplaying_ = get_Currently_Playing();
-            if (currentlyplaying_.item != null)
+            if (currentlyplaying_ != null)
             {
-                // Set Track name label to track name
-                lbl_cTrackName.Invoke((MethodInvoker)delegate
+                if (currentlyplaying_.item != null)
                 {
-                    lbl_cTrackName.Text = currentlyplaying_.item.name;
-                });
-                // Put list of artists into a string and set as text for Track artists label
-                lbl_cTrackArtist.Invoke((MethodInvoker)delegate
-                {
-                    lbl_cTrackArtist.Text = String.Join(", ", currentlyplaying_.item.artists.Select(p => p.name).ToArray());
-                });
-                // Display cover in picture box
-                pic_Cover.Invoke((MethodInvoker)delegate
-                {
-                    pic_Cover.Load(currentlyplaying_.item.album.images[0].url);
-                });
+                    // Set Track name label to track name
+                    lbl_cTrackName.Invoke((MethodInvoker)delegate
+                    {
+                        lbl_cTrackName.Text = currentlyplaying_.item.name;
+                    });
+                    // Put list of artists into a string and set as text for Track artists label
+                    lbl_cTrackArtist.Invoke((MethodInvoker)delegate
+                    {
+                        lbl_cTrackArtist.Text = String.Join(", ", currentlyplaying_.item.artists.Select(p => p.name).ToArray());
+                    });
+                    // Display cover in picture box
+                    pic_Cover.Invoke((MethodInvoker)delegate
+                    {
+                        pic_Cover.Load(currentlyplaying_.item.album.images[0].url);
+                    });
+                }
             }
         }
 
