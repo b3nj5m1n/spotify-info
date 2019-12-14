@@ -72,7 +72,7 @@ namespace spotify_info
                 Thread.Sleep(delay / 100);
                 prog_getspotifyprocess.Invoke((MethodInvoker)delegate
                 {
-                    prog_getspotifyprocess.Value = prog_getspotifyprocess.Value + 1 % 100;
+                    prog_getspotifyprocess.Value = (prog_getspotifyprocess.Value + 1) % 100;
                 });
             }
 
@@ -117,7 +117,7 @@ namespace spotify_info
         }
 
         // Token for Spotify API
-        string oAuthToken = "BQDGW5FQN7kU8zx5lIZq54k5Qjxs33PFKWKRpjibeI8sigPbFbxOmNBEfJMKR3CmLudkxR9_sqLhCFkMpr13lKCPSvOqtMBDHSZU6r-ozIgSpBJXCFQ25fma_gvmkC10CAa_cgCFmU8";
+        string oAuthToken = "BQA550EPjHSsYasNi6Kqb1Fu_ZcMIDf-jU6MWmJt85R1cyDse4dAFe6VfWKjIplX9EZrY1IWnIx3Socbik9-hpkOxdsvEJho3bqbvWoz6Jf216WLty_iHd0r1L_4reUfXRPwZ-EdcRpH";
 
         // Returns a currently playing object with all of the available information on the currently playing track
         private currentlyplaying get_Currently_Playing()
@@ -225,6 +225,12 @@ namespace spotify_info
                 if (stopRecording)
                 {
                     stopRecording = false;
+                    if (listen == false)
+                    {
+                        listen = true;
+                        Task listenTask = new Task(song_change_listener);
+                        listenTask.Start();
+                    }
                     Task t = new Task(loopRecord);
                     t.Start();
                 } else
@@ -248,8 +254,7 @@ namespace spotify_info
             {
                 using (WasapiCapture capture = new WasapiLoopbackCapture())
                 {
-
-                    string filename = GetWindowTitle();
+                    string filename = get_Currently_Playing().item.id; // GetWindowTitle();
 
                     //rtxt_songlist.Invoke((MethodInvoker)delegate {
                     //    // Running on the UI thread
@@ -257,11 +262,10 @@ namespace spotify_info
                     //});
 
                     // rtxt_songlist.Text += filename + "\n";
-                    foreach (char c in System.IO.Path.GetInvalidFileNameChars())
-                    {
-                        filename = filename.Replace(c, '_');
-                    }
-
+                    //foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+                    //{
+                    //    filename = filename.Replace(c, '_');
+                    //}
 
 
                     //initialize the selected device for recording
