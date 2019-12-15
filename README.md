@@ -5,7 +5,7 @@
 - Windows machine
 - [Spotify desktop](https://www.spotify.com/de/download/windows/)
 - [MongoDB installed on your computer](https://www.mongodb.com/download-center/community) (Optional, but required to create playlists)
-- [ffmpeg.exe in system32 folder](https://ffmpeg.zeranoe.com/builds/)
+- [ffmpeg.exe in C:\ folder](https://ffmpeg.zeranoe.com/builds/)
 
 ## How to use
 ### Do this once
