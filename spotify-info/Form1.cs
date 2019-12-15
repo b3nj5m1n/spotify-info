@@ -175,11 +175,18 @@ namespace spotify_info
                     {
                         lbl_cTrackArtist.Text = String.Join(", ", currentlyplaying_.item.artists.Select(p => p.name).ToArray());
                     });
-                    // Display cover in picture box
-                    pic_Cover.Invoke((MethodInvoker)delegate
+                    try
                     {
-                        pic_Cover.Load(currentlyplaying_.item.album.images[0].url);
-                    });
+                        // Display cover in picture box
+                        pic_Cover.Invoke((MethodInvoker)delegate
+                        {
+                            pic_Cover.Load(currentlyplaying_.item.album.images[0].url);
+                        });
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    
                 }
             }
         }
@@ -425,19 +432,25 @@ namespace spotify_info
                             // Get current window title of active window
                             string newTitle = GetWindowTitle();
                             // Wait for the title to change, check 10 times per second
-                            while (newTitle == GetWindowTitle() || GetWindowTitle() == "Advertisement" || GetWindowTitle() == "Spotify")
+                            while (newTitle == GetWindowTitle())
                             {
                                 Thread.Sleep(100);
                                 updateWindowNameDisplay();
                             }
+                            //stop recording
+                            capture.Stop();
                             updateWindowNameDisplay();
+                            while (GetWindowTitle() == "Advertisement" || GetWindowTitle() == "Spotify")
+                            {
+                                Thread.Sleep(100);
+                                updateWindowNameDisplay();
+                            }
+                            convertTagAsynch(path, filename, cp);
+
 
                             // Thread.Sleep(time);
 
 
-                            //stop recording
-                            capture.Stop();
-                            convertTagAsynch(path, filename, currentlyplaying_);
                         }
                     }
                 }
