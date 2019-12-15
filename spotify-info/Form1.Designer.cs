@@ -32,6 +32,7 @@
             this.btn_getProcess = new System.Windows.Forms.Button();
             this.prog_getspotifyprocess = new System.Windows.Forms.ProgressBar();
             this.grp_currentTrack = new System.Windows.Forms.GroupBox();
+            this.txt_tokenExpires = new System.Windows.Forms.TextBox();
             this.txt_clientID = new System.Windows.Forms.TextBox();
             this.txt_secretID = new System.Windows.Forms.TextBox();
             this.btn_tokenRefresh = new System.Windows.Forms.Button();
@@ -52,12 +53,17 @@
             this.btn_useLocalDatabase = new System.Windows.Forms.Button();
             this.btn_selectdFolder = new System.Windows.Forms.Button();
             this.btn_toggleRecord = new System.Windows.Forms.Button();
-            this.txt_tokenExpires = new System.Windows.Forms.TextBox();
             this.timer = new System.Windows.Forms.Timer(this.components);
+            this.grp_playlist = new System.Windows.Forms.GroupBox();
+            this.btn_createPlaylist = new System.Windows.Forms.Button();
+            this.cmb_selectPlaylist = new System.Windows.Forms.ComboBox();
+            this.btn_loadPlaylists = new System.Windows.Forms.Button();
+            this.btn_selectPlaylistFile = new System.Windows.Forms.Button();
             this.grp_currentTrack.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pic_Cover)).BeginInit();
             this.grp_db.SuspendLayout();
             this.grp_Record.SuspendLayout();
+            this.grp_playlist.SuspendLayout();
             this.SuspendLayout();
             // 
             // btn_getProcess
@@ -103,6 +109,20 @@
             this.grp_currentTrack.TabIndex = 2;
             this.grp_currentTrack.TabStop = false;
             this.grp_currentTrack.Text = "Currently playing:";
+            // 
+            // txt_tokenExpires
+            // 
+            this.txt_tokenExpires.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.txt_tokenExpires.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.txt_tokenExpires.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.txt_tokenExpires.Font = new System.Drawing.Font("Microsoft YaHei", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txt_tokenExpires.ForeColor = System.Drawing.Color.White;
+            this.txt_tokenExpires.Location = new System.Drawing.Point(3, 237);
+            this.txt_tokenExpires.Name = "txt_tokenExpires";
+            this.txt_tokenExpires.ReadOnly = true;
+            this.txt_tokenExpires.Size = new System.Drawing.Size(296, 32);
+            this.txt_tokenExpires.TabIndex = 8;
+            this.txt_tokenExpires.Text = "Token expires in: ";
             // 
             // txt_clientID
             // 
@@ -291,6 +311,7 @@
             // 
             // grp_Record
             // 
+            this.grp_Record.Controls.Add(this.grp_playlist);
             this.grp_Record.Controls.Add(this.btn_wav2mp3);
             this.grp_Record.Controls.Add(this.btn_useLocalDatabase);
             this.grp_Record.Controls.Add(this.btn_selectdFolder);
@@ -351,25 +372,71 @@
             this.btn_toggleRecord.UseVisualStyleBackColor = true;
             this.btn_toggleRecord.Click += new System.EventHandler(this.btn_toggleRecord_Click);
             // 
-            // txt_tokenExpires
-            // 
-            this.txt_tokenExpires.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.txt_tokenExpires.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.txt_tokenExpires.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.txt_tokenExpires.Font = new System.Drawing.Font("Microsoft YaHei", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txt_tokenExpires.ForeColor = System.Drawing.Color.White;
-            this.txt_tokenExpires.Location = new System.Drawing.Point(3, 237);
-            this.txt_tokenExpires.Name = "txt_tokenExpires";
-            this.txt_tokenExpires.ReadOnly = true;
-            this.txt_tokenExpires.Size = new System.Drawing.Size(296, 32);
-            this.txt_tokenExpires.TabIndex = 8;
-            this.txt_tokenExpires.Text = "Token expires in: ";
-            // 
             // timer
             // 
             this.timer.Enabled = true;
             this.timer.Interval = 1000;
             this.timer.Tick += new System.EventHandler(this.timer_Tick);
+            // 
+            // grp_playlist
+            // 
+            this.grp_playlist.Controls.Add(this.btn_selectPlaylistFile);
+            this.grp_playlist.Controls.Add(this.btn_loadPlaylists);
+            this.grp_playlist.Controls.Add(this.cmb_selectPlaylist);
+            this.grp_playlist.Controls.Add(this.btn_createPlaylist);
+            this.grp_playlist.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.grp_playlist.ForeColor = System.Drawing.Color.White;
+            this.grp_playlist.Location = new System.Drawing.Point(3, 85);
+            this.grp_playlist.Name = "grp_playlist";
+            this.grp_playlist.Size = new System.Drawing.Size(242, 312);
+            this.grp_playlist.TabIndex = 6;
+            this.grp_playlist.TabStop = false;
+            this.grp_playlist.Text = "Create Playlist";
+            this.grp_playlist.Enter += new System.EventHandler(this.groupBox1_Enter);
+            // 
+            // btn_createPlaylist
+            // 
+            this.btn_createPlaylist.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btn_createPlaylist.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btn_createPlaylist.Location = new System.Drawing.Point(3, 16);
+            this.btn_createPlaylist.Name = "btn_createPlaylist";
+            this.btn_createPlaylist.Size = new System.Drawing.Size(236, 23);
+            this.btn_createPlaylist.TabIndex = 0;
+            this.btn_createPlaylist.Text = "Create Playlist";
+            this.btn_createPlaylist.UseVisualStyleBackColor = true;
+            // 
+            // cmb_selectPlaylist
+            // 
+            this.cmb_selectPlaylist.Dock = System.Windows.Forms.DockStyle.Top;
+            this.cmb_selectPlaylist.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cmb_selectPlaylist.FormattingEnabled = true;
+            this.cmb_selectPlaylist.Location = new System.Drawing.Point(3, 39);
+            this.cmb_selectPlaylist.Name = "cmb_selectPlaylist";
+            this.cmb_selectPlaylist.Size = new System.Drawing.Size(236, 21);
+            this.cmb_selectPlaylist.TabIndex = 1;
+            // 
+            // btn_loadPlaylists
+            // 
+            this.btn_loadPlaylists.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btn_loadPlaylists.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btn_loadPlaylists.Location = new System.Drawing.Point(3, 60);
+            this.btn_loadPlaylists.Name = "btn_loadPlaylists";
+            this.btn_loadPlaylists.Size = new System.Drawing.Size(236, 23);
+            this.btn_loadPlaylists.TabIndex = 2;
+            this.btn_loadPlaylists.Text = "Load Playlists";
+            this.btn_loadPlaylists.UseVisualStyleBackColor = true;
+            this.btn_loadPlaylists.Click += new System.EventHandler(this.btn_loadPlaylists_Click);
+            // 
+            // btn_selectPlaylistFile
+            // 
+            this.btn_selectPlaylistFile.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btn_selectPlaylistFile.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btn_selectPlaylistFile.Location = new System.Drawing.Point(3, 83);
+            this.btn_selectPlaylistFile.Name = "btn_selectPlaylistFile";
+            this.btn_selectPlaylistFile.Size = new System.Drawing.Size(236, 23);
+            this.btn_selectPlaylistFile.TabIndex = 3;
+            this.btn_selectPlaylistFile.Text = "Select File";
+            this.btn_selectPlaylistFile.UseVisualStyleBackColor = true;
             // 
             // form
             // 
@@ -394,6 +461,7 @@
             this.grp_db.ResumeLayout(false);
             this.grp_db.PerformLayout();
             this.grp_Record.ResumeLayout(false);
+            this.grp_playlist.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -425,6 +493,11 @@
         private System.Windows.Forms.TextBox txt_secretID;
         private System.Windows.Forms.TextBox txt_tokenExpires;
         private System.Windows.Forms.Timer timer;
+        private System.Windows.Forms.GroupBox grp_playlist;
+        private System.Windows.Forms.Button btn_createPlaylist;
+        private System.Windows.Forms.Button btn_selectPlaylistFile;
+        private System.Windows.Forms.Button btn_loadPlaylists;
+        private System.Windows.Forms.ComboBox cmb_selectPlaylist;
     }
 }
 

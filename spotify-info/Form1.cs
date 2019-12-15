@@ -6,6 +6,7 @@ using SpotifyAPI.Web.Auth;
 using SpotifyAPI.Web.Enums;
 using SpotifyAPI.Web.Models;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
@@ -49,7 +50,7 @@ namespace spotify_info
                     _secretId,
                     "http://localhost:4002",
                     "http://localhost:4002",
-                    Scope.UserReadCurrentlyPlaying | Scope.UserReadPlaybackState
+                    Scope.UserReadCurrentlyPlaying | Scope.UserReadPlaybackState | Scope.PlaylistReadPrivate | Scope.PlaylistReadCollaborative | Scope.UserReadEmail | Scope.UserReadPrivate
                 );
                 path = s.Path;
                 if (Directory.Exists(path))
@@ -186,7 +187,7 @@ namespace spotify_info
                     catch (Exception)
                     {
                     }
-                    
+
                 }
             }
         }
@@ -532,7 +533,7 @@ namespace spotify_info
             {
                 MessageBox.Show(ex.Message);
             }
-            
+
 
             TagLib.Id3v2.AttachedPictureFrame cover = new TagLib.Id3v2.AttachedPictureFrame
             {
@@ -686,6 +687,76 @@ namespace spotify_info
         {
             txt_tokenExpires.Text = "Token expires in: " + ((60 * 60 - timePassed) / 60).ToString() + " minutes";
         }
+
+        private void groupBox1_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btn_loadPlaylists_Click(object sender, EventArgs e)
+        {
+            // Get username
+            if (oAuthToken != "")
+            {
+                string username = "";
+                // Create an api request
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://api.spotify.com/v1/me");
+                httpWebRequest.ContentType = "application/json";
+                httpWebRequest.Accept = "application/json";
+                httpWebRequest.Method = "GET";
+                httpWebRequest.Headers.Add("Authorization", "Bearer " + txt_accessToken.Text); // oAuthToken);
+
+                try
+                {
+                    var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                    using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                    {
+                        // Parse the returned json to a c# object
+                        string response = streamReader.ReadToEnd();
+                        userdata ud = Newtonsoft.Json.JsonConvert.DeserializeObject<userdata>(response);
+                        username = ud.display_name;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+
+                // Get list of playlists
+                // Create an api request
+                // curl -X "GET" "https://api.spotify.com/v1/users/alnatz/playlists?limit=50&offset=0"
+                var httpWebRequest1 = (HttpWebRequest)WebRequest.Create("https://api.spotify.com/v1/users/" + username + "/playlists?limit=50&offset=0");
+                httpWebRequest1.ContentType = "application/json";
+                httpWebRequest1.Accept = "application/json";
+                httpWebRequest1.Method = "GET";
+                httpWebRequest1.Headers.Add("Authorization", "Bearer " + txt_accessToken.Text); // oAuthToken);
+
+                try
+                {
+                    var httpResponse1 = (HttpWebResponse)httpWebRequest1.GetResponse();
+                    using (var streamReader1 = new StreamReader(httpResponse1.GetResponseStream()))
+                    {
+                        // Parse the returned json to a c# object
+                        string response = streamReader1.ReadToEnd();
+                        playlists playlists = Newtonsoft.Json.JsonConvert.DeserializeObject<playlists>(response);
+                        foreach (var playlist in playlists.items)
+                        {
+                            cmb_selectPlaylist.Items.Add(playlist);
+                        }
+                        cmb_selectPlaylist.SelectedIndex = 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+
+            }
+            else
+            {
+                MessageBox.Show("Access token required.");
+            }
+        }
     }
 
     class DB_Handler
@@ -765,6 +836,134 @@ namespace spotify_info
         public string Path { get; set; }
         public string oAuthToken { get; set; }
         public string refreshToken { get; set; }
+    }
+
+    class userdata
+    {
+
+        public class ExplicitContent
+        {
+            public bool filter_enabled { get; set; }
+            public bool filter_locked { get; set; }
+        }
+
+        public class ExternalUrls
+        {
+            public string spotify { get; set; }
+        }
+
+        public class Followers
+        {
+            public object href { get; set; }
+            public int total { get; set; }
+        }
+
+        public string country { get; set; }
+        public string display_name { get; set; }
+        public string email { get; set; }
+        public ExplicitContent explicit_content { get; set; }
+        public ExternalUrls external_urls { get; set; }
+        public Followers followers { get; set; }
+        public string href { get; set; }
+        public string id { get; set; }
+        public List<object> images { get; set; }
+        public string product { get; set; }
+        public string type { get; set; }
+        public string uri { get; set; }
+
+
+    }
+
+    class playlists
+    {
+
+
+
+        public string href { get; set; }
+        public Item[] items { get; set; }
+        public int limit { get; set; }
+        public string next { get; set; }
+        public int offset { get; set; }
+        public string previous { get; set; }
+        public int total { get; set; }
+
+
+        public class Item
+        {
+            public override string ToString()
+            {
+                return name;
+            }
+            public bool collaborative { get; set; }
+            public string description { get; set; }
+            public External_Urls external_urls { get; set; }
+            public string href { get; set; }
+            public string id { get; set; }
+            public Image[] images { get; set; }
+            public string name { get; set; }
+            public Owner owner { get; set; }
+            public object primary_color { get; set; }
+            public bool _public { get; set; }
+            public string snapshot_id { get; set; }
+            public Tracks tracks { get; set; }
+            public string type { get; set; }
+            public string uri { get; set; }
+        }
+
+        public class External_Urls
+        {
+            public string spotify { get; set; }
+        }
+
+        public class Owner
+        {
+            public string display_name { get; set; }
+            public External_Urls1 external_urls { get; set; }
+            public string href { get; set; }
+            public string id { get; set; }
+            public string type { get; set; }
+            public string uri { get; set; }
+        }
+
+        public class External_Urls1
+        {
+            public string spotify { get; set; }
+        }
+
+        public class Tracks
+        {
+            public string href { get; set; }
+            public int total { get; set; }
+        }
+
+        public class Image
+        {
+            public int? height { get; set; }
+            public string url { get; set; }
+            public int? width { get; set; }
+        }
+
+    }
+
+    class m3u_Handler
+    {
+        void create_m3u(string filename, List<song> songs)
+        {
+            if (!File.Exists(filename))
+            {
+                File.Create(filename);
+            }
+            else
+            {
+                string content = "#EXTM3U" + Environment.NewLine;
+                foreach (song s in songs)
+                {
+                    content += "#EXTINF:" + (s.song_info.item.duration_ms / 1000).ToString() + "," + s.song_info.item.name + Environment.NewLine;
+                    content += s.local_Info.path + Environment.NewLine;
+                }
+                File.WriteAllText(filename, content);
+            }
+        }
     }
 
 
