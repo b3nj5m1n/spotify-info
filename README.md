@@ -4,7 +4,6 @@
 # Requirements
 - Windows machine
 - [Spotify desktop](https://www.spotify.com/de/download/windows/)
-- [Spotify API token for your account](https://developer.spotify.com/console/get-users-currently-playing-track/)
 - [MongoDB installed on your computer](https://www.mongodb.com/download-center/community) (Optional, but required to create playlists)
 - [ffmpeg.exe in system32 folder](https://ffmpeg.zeranoe.com/builds/)
 
