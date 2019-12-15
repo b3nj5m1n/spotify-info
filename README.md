@@ -17,3 +17,13 @@ Click on "get access token" and confirm.
 Click on "select folder" and select the folder you want your songs to be saved in.
 Click on record and start playing songs in your spotify desktop application.
 Once your done, click the same button again and wait for the current song to finsish.
+
+## How to save a playlist
+Make sure you have mongodb installed and running throughout the recording proccess.
+Click on "Load Playlists", this will load all of your spotify playlists. Now select the one you want to save from the dropdown menu. Now click on "Select File" and choose a file to save to (.m3u). Now click on "Create Playlist".
+
+
+## Todo/Known Bugs/Issues
+
+#### Playlist limited to 50
+#### Songs per playlist limited to 100
