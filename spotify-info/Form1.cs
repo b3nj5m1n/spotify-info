@@ -1,27 +1,23 @@
-﻿using CSCore;
+﻿using CSCore.Codecs.WAV;
 using CSCore.SoundIn;
-using CSCore.Codecs.WAV;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using SpotifyAPI.Web.Auth;
+using SpotifyAPI.Web.Enums;
+using SpotifyAPI.Web.Models;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
-using SpotifyAPI.Web.Auth;
-using SpotifyAPI.Web.Models;
-using SpotifyAPI.Web.Enums;
 
 namespace spotify_info
 {
@@ -68,7 +64,7 @@ namespace spotify_info
 
         int timePassed = 0;
         // Access token will be renewed every 20 minutes
-        int threshold = 60*20;//60 * 50;
+        int threshold = 60 * 20;//60 * 50;
         void resetExpires()
         {
             timePassed = 0;
@@ -115,7 +111,7 @@ namespace spotify_info
             Task getProcessTask = new Task(get_Process);
             getProcessTask.Start();
         }
-
+        string original_window_name = "";
         private void get_Process()
         {
             //// Delay to wait for to focus the spotify application in ms
@@ -150,6 +146,7 @@ namespace spotify_info
                     btn_getProcess.Text = "Task name: " + GetWindowTitle();
                 });
                 foundTask = true;
+                original_window_name = GetWindowTitle();
             }
         }
 
@@ -219,7 +216,8 @@ namespace spotify_info
                     MessageBox.Show(ex.Message);
                     return null;
                 }
-            } else
+            }
+            else
             {
                 MessageBox.Show("Access token required.");
                 return null;
@@ -243,8 +241,28 @@ namespace spotify_info
                 {
                     Task.Delay(600);
                     update_currently_playing();
+                    updateWindowNameDisplay();
                 }
 
+            }
+        }
+
+        private void updateWindowNameDisplay()
+        {
+
+            if (GetWindowTitle() != original_window_name)
+            {
+                btn_getProcess.Invoke((MethodInvoker)delegate
+                {
+                    btn_getProcess.Text = original_window_name + ": " + GetWindowTitle();
+                });
+            }
+            else
+            {
+                btn_getProcess.Invoke((MethodInvoker)delegate
+                {
+                    btn_getProcess.Text = original_window_name;
+                });
             }
         }
 
@@ -272,7 +290,8 @@ namespace spotify_info
             if (live)
             {
                 btn_connectDB.BackColor = Color.LightGreen;
-            } else
+            }
+            else
             {
                 btn_connectDB.BackColor = Color.IndianRed;
             }
@@ -305,7 +324,8 @@ namespace spotify_info
             if (!pathSpecified)
             {
                 MessageBox.Show("Please select a folder to save the files in.");
-            } else
+            }
+            else
             {
                 if (stopRecording)
                 {
@@ -321,7 +341,8 @@ namespace spotify_info
                     btn_toggleRecord.Text = "Waiting for new song...";
                     btn_toggleRecord.BackColor = Color.Yellow;
                     btn_toggleRecord.ForeColor = Color.Black;
-                } else
+                }
+                else
                 {
                     stopRecording = true;
                     btn_toggleRecord.Text = "Finishing recording...";
@@ -338,10 +359,11 @@ namespace spotify_info
             // Get current window title of active window
             string title = GetWindowTitle();
             // Wait for the title to change, check 10 times per second
-            while (title == GetWindowTitle())
+            while (title == GetWindowTitle() || GetWindowTitle() == "Advertisement" || GetWindowTitle() == "Spotify")
             {
                 Thread.Sleep(100);
             }
+            updateWindowNameDisplay();
             btn_toggleRecord.Invoke((MethodInvoker)delegate
             {
                 btn_toggleRecord.Text = "Recording...";
@@ -352,8 +374,13 @@ namespace spotify_info
             {
                 using (WasapiCapture capture = new WasapiLoopbackCapture())
                 {
-                    currentlyplaying cp = get_Currently_Playing();
-                    if (cp != null) {
+                    currentlyplaying cp = null;
+                    while (cp == null)
+                    {
+                        cp = get_Currently_Playing();
+                    }
+                    if (cp.item != null)
+                    {
                         string filename = cp.item.id; // GetWindowTitle();
 
                         //rtxt_songlist.Invoke((MethodInvoker)delegate {
@@ -382,8 +409,8 @@ namespace spotify_info
                             //setup an eventhandler to receive the recorded data
                             capture.DataAvailable += (s, E) =>
                             {
-                            //save the recorded audio
-                            w.Write(E.Data, E.Offset, E.ByteCount);
+                                //save the recorded audio
+                                w.Write(E.Data, E.Offset, E.ByteCount);
                             };
 
                             //start recording
@@ -398,10 +425,12 @@ namespace spotify_info
                             // Get current window title of active window
                             string newTitle = GetWindowTitle();
                             // Wait for the title to change, check 10 times per second
-                            while (newTitle == GetWindowTitle())
+                            while (newTitle == GetWindowTitle() || GetWindowTitle() == "Advertisement" || GetWindowTitle() == "Spotify")
                             {
                                 Thread.Sleep(100);
+                                updateWindowNameDisplay();
                             }
+                            updateWindowNameDisplay();
 
                             // Thread.Sleep(time);
 
@@ -421,7 +450,7 @@ namespace spotify_info
             btn_toggleRecord.Invoke((MethodInvoker)delegate
             {
                 btn_toggleRecord.Text = "Record";
-                btn_toggleRecord.BackColor = Color.FromArgb(30,30,30);
+                btn_toggleRecord.BackColor = Color.FromArgb(30, 30, 30);
                 btn_toggleRecord.ForeColor = Color.White;
             });
         }
@@ -471,18 +500,26 @@ namespace spotify_info
             file.Save();
             if (useLocalDB)
             {
-                DB_Handler.insertSong(cp, path, true, DateTime.Now);
+                DB_Handler.insertSong(cp, path + "\\" + filename + ".mp3", true, DateTime.Now);
             }
         }
         // This method sets album cover art for mp3 files https://stackoverflow.com/a/50438153/
         public void SetAlbumArt(string url, TagLib.File file, string path_, string filename)
         {
             string path = string.Format(@"{0}\{1}.jpg", path_, filename);
-            byte[] imageBytes;
-            using (WebClient client = new WebClient())
+            byte[] imageBytes = null;
+            try
             {
-                imageBytes = client.DownloadData(url);
+                using (WebClient client = new WebClient())
+                {
+                    imageBytes = client.DownloadData(url);
+                }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            
 
             TagLib.Id3v2.AttachedPictureFrame cover = new TagLib.Id3v2.AttachedPictureFrame
             {
@@ -508,11 +545,12 @@ namespace spotify_info
                 if (String.IsNullOrEmpty(path))
                 {
                     fbd.SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
-                } else
+                }
+                else
                 {
                     fbd.SelectedPath = path;
                 }
-                
+
                 DialogResult result = fbd.ShowDialog();
 
                 if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
@@ -535,18 +573,20 @@ namespace spotify_info
                 {
                     btn_useLocalDatabase.BackColor = Color.LightGreen;
                     useLocalDB = true;
-                } else
+                }
+                else
                 {
                     btn_useLocalDatabase.BackColor = Color.IndianRed;
                     MessageBox.Show("Connection to local database could not be established.");
                 }
-            } else
+            }
+            else
             {
                 useLocalDB = false;
                 btn_useLocalDatabase.BackColor = Color.FromArgb(30, 30, 30);
             }
         }
-            
+
         void updateHostPort()
         {
             DB_Handler.host = txt_dbHost.Text;
@@ -582,6 +622,7 @@ namespace spotify_info
         private void btn_tokenRefresh_Click(object sender, EventArgs e)
         {
             refreshToken();
+            resetExpires();
         }
 
         async void refreshToken()
@@ -630,7 +671,7 @@ namespace spotify_info
 
         void updateTxtExpires()
         {
-            txt_tokenExpires.Text = "Token expires in: " + ((60*60 - timePassed)/60).ToString() + " minutes";
+            txt_tokenExpires.Text = "Token expires in: " + ((60 * 60 - timePassed) / 60).ToString() + " minutes";
         }
     }
 
