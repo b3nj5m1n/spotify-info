@@ -641,12 +641,20 @@ namespace spotify_info
 
         async void refreshToken()
         {
-            Token newToken = await auth.RefreshToken(token.RefreshToken);
-            oAuthToken = newToken.AccessToken;
-            txt_accessToken.Invoke((MethodInvoker)delegate
+            try
             {
-                txt_accessToken.Text = oAuthToken;
-            });
+                Token newToken = await auth.RefreshToken(token.RefreshToken);
+                oAuthToken = newToken.AccessToken;
+                txt_accessToken.Invoke((MethodInvoker)delegate
+                {
+                    txt_accessToken.Text = oAuthToken;
+                });
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         private void txt_clientID_Click(object sender, EventArgs e)
@@ -724,7 +732,6 @@ namespace spotify_info
 
                 // Get list of playlists
                 // Create an api request
-                // curl -X "GET" "https://api.spotify.com/v1/users/alnatz/playlists?limit=50&offset=0"
                 var httpWebRequest1 = (HttpWebRequest)WebRequest.Create("https://api.spotify.com/v1/users/" + username + "/playlists?limit=50&offset=0");
                 httpWebRequest1.ContentType = "application/json";
                 httpWebRequest1.Accept = "application/json";
@@ -744,6 +751,7 @@ namespace spotify_info
                             cmb_selectPlaylist.Items.Add(playlist);
                         }
                         cmb_selectPlaylist.SelectedIndex = 0;
+                        playlistsloaded = true;
                     }
                 }
                 catch (Exception ex)
@@ -755,6 +763,76 @@ namespace spotify_info
             else
             {
                 MessageBox.Show("Access token required.");
+            }
+        }
+        string saveplaylistfilename = "";
+        bool playlistsloaded = false;
+        bool saveplaylistfilenamechoosen = false;
+        private void btn_selectPlaylistFile_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.InitialDirectory = path;
+            saveFileDialog.Filter = "m3u (.m3u)|*.m3u";
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                saveplaylistfilename = saveFileDialog.FileName;
+                saveplaylistfilenamechoosen = true;
+                btn_selectPlaylistFile.Text = saveplaylistfilename;
+            }
+        }
+
+        private void btn_createPlaylist_Click(object sender, EventArgs e)
+        {
+            if (playlistsloaded && saveplaylistfilenamechoosen && useLocalDB)
+            {
+                string id = (cmb_selectPlaylist.SelectedItem as playlists.Item).id;
+                // Get the tracks from the playlist
+                // Get list of playlists
+                // Create an api request
+                var httpWebRequest1 = (HttpWebRequest)WebRequest.Create("https://api.spotify.com/v1/playlists/" + id + "/tracks?market=ES&limit=100&offset=0");
+                httpWebRequest1.ContentType = "application/json";
+                httpWebRequest1.Accept = "application/json";
+                httpWebRequest1.Method = "GET";
+                httpWebRequest1.Headers.Add("Authorization", "Bearer " + txt_accessToken.Text); // oAuthToken);
+
+                try
+                {
+                    var httpResponse1 = (HttpWebResponse)httpWebRequest1.GetResponse();
+                    using (var streamReader1 = new StreamReader(httpResponse1.GetResponseStream()))
+                    {
+                        // Parse the returned json to a c# object
+                        string response = streamReader1.ReadToEnd();
+                        playlist playlist = Newtonsoft.Json.JsonConvert.DeserializeObject<playlist>(response);
+                        List<string> ids = new List<string>();
+                        foreach (playlist.Item item in playlist.items)
+                        {
+                            ids.Add(item.track.id);
+                        }
+                        List<song> songs = new List<song>();
+                        foreach (string ID in ids)
+                        {
+                            song tmp = DB_Handler.get_song(ID);
+                            if (tmp != null)
+                            {
+                                songs.Add(tmp);
+                            }
+                        }
+                        foreach (var item in songs)
+                        {
+                            Console.WriteLine(item.local_Info.path);
+                        }
+                        m3u_Handler m3u = new m3u_Handler();
+                        m3u.create_m3u(saveplaylistfilename, songs);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+            else
+            {
+                MessageBox.Show("You need to select a file to save to, you need to have a list of your playlists loaded and you need mongodb installed.");
             }
         }
     }
@@ -822,6 +900,32 @@ namespace spotify_info
             db.DropCollection(settings_collection_name);
             var collection = db.GetCollection<settings>(settings_collection_name);
             collection.InsertOne(s);
+        }
+
+        public song get_song(string id)
+        {
+            var client = new MongoClient("mongodb://" + host + ":" + port + "");
+            var db = client.GetDatabase(database_name);
+            var collection = db.GetCollection<song>(collection_name);
+            var docs = collection
+                .Find(s => s.song_info.item.id == id)
+                .Limit(1)
+                .ToList();
+            //foreach (song s in docs)
+            //{
+            //    Console.WriteLine(id);
+            //    Console.WriteLine(s.song_info.item.id);
+            //    Console.WriteLine("____");
+            //    if (s.song_info.item.id == id)
+            //    {
+            //        return s;
+            //    }
+            //}
+            if (docs.Count != 0)
+            {
+                return docs[0];
+            }
+            return null;
         }
 
     }
@@ -945,24 +1049,154 @@ namespace spotify_info
 
     }
 
+    class playlist
+    {
+
+        public string href { get; set; }
+        public Item[] items { get; set; }
+        public int limit { get; set; }
+        public string next { get; set; }
+        public int offset { get; set; }
+        public object previous { get; set; }
+        public int total { get; set; }
+
+
+        public class Item
+        {
+            public DateTime added_at { get; set; }
+            public Added_By added_by { get; set; }
+            public bool is_local { get; set; }
+            public object primary_color { get; set; }
+            public Track track { get; set; }
+            public Video_Thumbnail video_thumbnail { get; set; }
+        }
+
+        public class Added_By
+        {
+            public External_Urls external_urls { get; set; }
+            public string href { get; set; }
+            public string id { get; set; }
+            public string type { get; set; }
+            public string uri { get; set; }
+        }
+
+        public class External_Urls
+        {
+            public string spotify { get; set; }
+        }
+
+        public class Track
+        {
+            public Album album { get; set; }
+            public Artist1[] artists { get; set; }
+            public int disc_number { get; set; }
+            public int duration_ms { get; set; }
+            public bool episode { get; set; }
+            public bool _explicit { get; set; }
+            public External_Ids external_ids { get; set; }
+            public External_Urls3 external_urls { get; set; }
+            public string href { get; set; }
+            public string id { get; set; }
+            public bool is_local { get; set; }
+            public bool is_playable { get; set; }
+            public string name { get; set; }
+            public int popularity { get; set; }
+            public string preview_url { get; set; }
+            public bool track { get; set; }
+            public int track_number { get; set; }
+            public string type { get; set; }
+            public string uri { get; set; }
+        }
+
+        public class Album
+        {
+            public string album_type { get; set; }
+            public Artist[] artists { get; set; }
+            public External_Urls1 external_urls { get; set; }
+            public string href { get; set; }
+            public string id { get; set; }
+            public Image[] images { get; set; }
+            public string name { get; set; }
+            public string release_date { get; set; }
+            public string release_date_precision { get; set; }
+            public int total_tracks { get; set; }
+            public string type { get; set; }
+            public string uri { get; set; }
+        }
+
+        public class External_Urls1
+        {
+            public string spotify { get; set; }
+        }
+
+        public class Artist
+        {
+            public External_Urls2 external_urls { get; set; }
+            public string href { get; set; }
+            public string id { get; set; }
+            public string name { get; set; }
+            public string type { get; set; }
+            public string uri { get; set; }
+        }
+
+        public class External_Urls2
+        {
+            public string spotify { get; set; }
+        }
+
+        public class Image
+        {
+            public int height { get; set; }
+            public string url { get; set; }
+            public int width { get; set; }
+        }
+
+        public class External_Ids
+        {
+            public string isrc { get; set; }
+        }
+
+        public class External_Urls3
+        {
+            public string spotify { get; set; }
+        }
+
+        public class Artist1
+        {
+            public External_Urls4 external_urls { get; set; }
+            public string href { get; set; }
+            public string id { get; set; }
+            public string name { get; set; }
+            public string type { get; set; }
+            public string uri { get; set; }
+        }
+
+        public class External_Urls4
+        {
+            public string spotify { get; set; }
+        }
+
+        public class Video_Thumbnail
+        {
+            public object url { get; set; }
+        }
+
+    }
     class m3u_Handler
     {
-        void create_m3u(string filename, List<song> songs)
+        public void create_m3u(string filename, List<song> songs)
         {
             if (!File.Exists(filename))
             {
                 File.Create(filename);
             }
-            else
+            string content = "#EXTM3U" + Environment.NewLine;
+            foreach (song s in songs)
             {
-                string content = "#EXTM3U" + Environment.NewLine;
-                foreach (song s in songs)
-                {
-                    content += "#EXTINF:" + (s.song_info.item.duration_ms / 1000).ToString() + "," + s.song_info.item.name + Environment.NewLine;
-                    content += s.local_Info.path + Environment.NewLine;
-                }
-                File.WriteAllText(filename, content);
+                content += "#EXTINF:" + (s.song_info.item.duration_ms / 1000).ToString() + "," + s.song_info.item.name + Environment.NewLine;
+                content += s.local_Info.path + Environment.NewLine;
             }
+            File.WriteAllText(filename, content);
         }
     }
 

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System;
 
 namespace spotify_info
 {
@@ -14,6 +16,9 @@ namespace spotify_info
             public DateTime time { get; set; }
         }
 
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string _id { get; set; }
         public currentlyplaying song_info;
         public Local_info local_Info;
 
