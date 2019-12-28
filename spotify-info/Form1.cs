@@ -37,29 +37,32 @@ namespace spotify_info
                 useLocalDB = true;
                 btn_useLocalDatabase.BackColor = Color.LightGreen;
                 settings s = DB_Handler.loadSettings();
-                txt_clientID.Text = s.Client_id;
-                txt_secretID.Text = s.Secret_id;
-                txt_dbHost.Text = s.Host;
-                txt_dbPort.Text = s.Port;
-                txt_accessToken.Text = s.oAuthToken;
-                oAuthToken = s.oAuthToken;
-                token = new Token();
-                token.RefreshToken = s.refreshToken;
-                auth = new AuthorizationCodeAuth(
-                    _clientId,
-                    _secretId,
-                    "http://localhost:4002",
-                    "http://localhost:4002",
-                    Scope.UserReadCurrentlyPlaying | Scope.UserReadPlaybackState | Scope.PlaylistReadPrivate | Scope.PlaylistReadCollaborative | Scope.UserReadEmail | Scope.UserReadPrivate
-                );
-                path = s.Path;
-                if (Directory.Exists(path))
+                if (s != null)
                 {
-                    pathSpecified = true;
-                    btn_selectdFolder.Text = path;
+                    txt_clientID.Text = s.Client_id;
+                    txt_secretID.Text = s.Secret_id;
+                    txt_dbHost.Text = s.Host;
+                    txt_dbPort.Text = s.Port;
+                    txt_accessToken.Text = s.oAuthToken;
+                    oAuthToken = s.oAuthToken;
+                    token = new Token();
+                    token.RefreshToken = s.refreshToken;
+                    auth = new AuthorizationCodeAuth(
+                        _clientId,
+                        _secretId,
+                        "http://localhost:4002",
+                        "http://localhost:4002",
+                        Scope.UserReadCurrentlyPlaying | Scope.UserReadPlaybackState | Scope.PlaylistReadPrivate | Scope.PlaylistReadCollaborative | Scope.UserReadEmail | Scope.UserReadPrivate
+                    );
+                    path = s.Path;
+                    if (Directory.Exists(path))
+                    {
+                        pathSpecified = true;
+                        btn_selectdFolder.Text = path;
+                    }
+                    refreshToken();
+                    resetExpires();
                 }
-                refreshToken();
-                resetExpires();
             }
         }
 
@@ -186,6 +189,7 @@ namespace spotify_info
                     }
                     catch (Exception)
                     {
+                        throw;
                     }
 
                 }
@@ -669,15 +673,23 @@ namespace spotify_info
 
         private void form_FormClosing(object sender, FormClosingEventArgs e)
         {
-            settings s = new settings();
-            s.Client_id = _clientId;
-            s.Secret_id = _secretId;
-            s.Host = txt_dbHost.Text;
-            s.Port = txt_dbPort.Text;
-            s.Path = path;
-            s.oAuthToken = oAuthToken;
-            s.refreshToken = token.RefreshToken;
-            DB_Handler.saveSettings(s);
+            try
+            {
+                settings s = new settings();
+                s.Client_id = _clientId;
+                s.Secret_id = _secretId;
+                s.Host = txt_dbHost.Text;
+                s.Port = txt_dbPort.Text;
+                s.Path = path;
+                s.oAuthToken = oAuthToken;
+                s.refreshToken = token.RefreshToken;
+                DB_Handler.saveSettings(s);
+            }
+            catch (Exception ex)
+            {
+                
+            }
+            
         }
 
         private void timer_Tick(object sender, EventArgs e)
@@ -770,14 +782,16 @@ namespace spotify_info
         bool saveplaylistfilenamechoosen = false;
         private void btn_selectPlaylistFile_Click(object sender, EventArgs e)
         {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.InitialDirectory = path;
-            saveFileDialog.Filter = "m3u (.m3u)|*.m3u";
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
-                saveplaylistfilename = saveFileDialog.FileName;
-                saveplaylistfilenamechoosen = true;
-                btn_selectPlaylistFile.Text = saveplaylistfilename;
+                saveFileDialog.InitialDirectory = path;
+                saveFileDialog.Filter = "m3u (.m3u)|*.m3u";
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    saveplaylistfilename = saveFileDialog.FileName;
+                    saveplaylistfilenamechoosen = true;
+                    btn_selectPlaylistFile.Text = saveplaylistfilename;
+                }
             }
         }
 
@@ -1188,7 +1202,7 @@ namespace spotify_info
         {
             if (!File.Exists(filename))
             {
-                File.Create(filename);
+                File.Create(filename).Close();
             }
             string content = "#EXTM3U" + Environment.NewLine;
             foreach (song s in songs)
