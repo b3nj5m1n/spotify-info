@@ -622,6 +622,13 @@ namespace spotify_info
         string _secretId = "f72602b2606643a0b05d0c4bf7357608";
         private void btn_tokenGet_Click(object sender, EventArgs e)
         {
+            auth = new AuthorizationCodeAuth(
+                        _clientId,
+                        _secretId,
+                        "http://localhost:4002",
+                        "http://localhost:4002",
+                        Scope.UserReadCurrentlyPlaying | Scope.UserReadPlaybackState | Scope.PlaylistReadPrivate | Scope.PlaylistReadCollaborative | Scope.UserReadEmail | Scope.UserReadPrivate
+                    );
             auth.AuthReceived += async (s, payload) =>
             {
                 auth.Stop();
@@ -654,10 +661,9 @@ namespace spotify_info
                     txt_accessToken.Text = oAuthToken;
                 });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                Console.WriteLine(ex.Message);
             }
         }
 
