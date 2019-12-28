@@ -613,7 +613,7 @@ namespace spotify_info
 
         private void btn_wav2mp3_Click(object sender, EventArgs e)
         {
-            convertTagAsynch(@"C:\Users\b3nj4m1n\Music\spotifydownloader\", "0A5gdlrpAuQqZ2iFgnqBFW", get_Currently_Playing());
+            convertTagAsynch(path, "0A5gdlrpAuQqZ2iFgnqBFW", get_Currently_Playing());
         }
 
         Token token;
